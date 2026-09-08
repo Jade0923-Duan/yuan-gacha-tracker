@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>如鸢抽卡记录本</title>
+  <title>抽卡记录本</title>
   <style>
     :root {
       --bg: #f5f2ec;
@@ -658,22 +658,6 @@
         width: 100%;
       }
     }
-  
-    .public-note {
-      margin: 0 0 14px;
-      padding: 10px 14px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: rgba(255, 253, 250, 0.9);
-      color: var(--sub);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .public-note span {
-      color: var(--accent);
-      font-weight: 700;
-    }
   </style>
 </head>
 <body>
@@ -889,7 +873,7 @@
       { id: "2026-05-21", type: "limited", name: "铁弦千钧", start: "2026-05-21", end: "2026-06-17", ups: ["程普", "钟繇"] },
       { id: "2026-05-28", type: "limited", name: "碧渊玉水", start: "2026-05-28", end: "2026-07-08", ups: ["夏侯渊", "刘璋"] },
       { id: "2026-07-23", type: "limited", name: "桓心之梦", start: "2026-07-23", end: "2026-09-02", ups: ["吕布", "曹丕"] },
-      { id: "2026-09-10", type: "limited", name: "限定池 2026.9.10", start: "2026-09-10", end: "2026-10-07", ups: ["郭女王", "庞德"] }
+      { id: "2026-09-10", type: "limited", name: "王侯秉德", start: "2026-09-10", end: "2026-10-07", ups: ["郭女王", "庞德"] }
     ];
 
     let POOL_CATALOG = loadPoolCatalog();
@@ -1001,6 +985,11 @@
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed) || !parsed.length) throw new Error("卡池数据为空");
         const normalized = parsed.map(normalizePool);
+        const renamedPool = normalized.find((pool) => pool.id === "2026-09-10");
+        if (renamedPool && renamedPool.name === "限定池 2026.9.10") {
+          renamedPool.name = "王侯秉德";
+          localStorage.setItem(POOL_STORAGE_KEY, JSON.stringify(normalized));
+        }
         if (!normalized.some((pool) => pool.id === "standard")) {
           normalized.unshift(normalizePool(DEFAULT_POOL_CATALOG[0]));
         }
@@ -1065,9 +1054,17 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     }
 
+    function getPoolsNewestFirst() {
+      return [...POOL_CATALOG].sort((a, b) => {
+        if (a.type !== b.type) return a.type === "standard" ? 1 : -1;
+        return (b.start || "").localeCompare(a.start || "");
+      });
+    }
+
     function populatePoolOptions() {
       const currentValue = poolSelect.value;
-      poolSelect.innerHTML = POOL_CATALOG.map((pool) => {
+      const sortedPools = getPoolsNewestFirst();
+      poolSelect.innerHTML = sortedPools.map((pool) => {
         const dateLabel = pool.start ? `${pool.start} 至 ${pool.end}` : "常驻";
         const upLabel = pool.ups.length ? `｜${pool.ups.join("、")}` : "";
         return `<option value="${pool.id}">${escapeHtml(pool.name)}｜${dateLabel}${escapeHtml(upLabel)}</option>`;
@@ -1080,11 +1077,23 @@
       const allCharacters = Array.from(new Set([...CHARACTERS, ...poolUps])).sort((a, b) =>
         a.localeCompare(b, "zh-CN")
       );
-      characterNameInput.innerHTML =
-        '<option value="">未出绝密 / 仅累计抽数</option>' +
-        allCharacters
-          .map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
-          .join("");
+      const selectedPool = getPoolById(poolSelect.value);
+      const currentUps = selectedPool?.type === "limited" ? selectedPool.ups : [];
+      const otherCharacters = allCharacters.filter((name) => !currentUps.includes(name));
+      const upOptions = currentUps.length
+        ? `<optgroup label="当期 UP（优先）">${currentUps
+            .map((name) => `<option value="${escapeHtml(name)}">★ ${escapeHtml(name)}</option>`)
+            .join("")}</optgroup>`
+        : "";
+      characterNameInput.innerHTML = `
+        <option value="">未出绝密 / 仅累计抽数</option>
+        ${upOptions}
+        <optgroup label="${currentUps.length ? "其他密探" : "全部密探"}">
+          ${otherCharacters
+            .map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+            .join("")}
+        </optgroup>
+      `;
       characterNameInput.value = allCharacters.includes(selectedValue) ? selectedValue : "";
     }
 
@@ -1372,7 +1381,7 @@
     }
 
     function updatePoolFilterOptions() {
-      const catalogNames = POOL_CATALOG.map((pool) => pool.name);
+      const catalogNames = getPoolsNewestFirst().map((pool) => pool.name);
       const importedNames = records
         .map((item) => item.poolName.trim())
         .filter((name) => name && !catalogNames.includes(name))
@@ -1660,7 +1669,10 @@
       resetForm();
     });
 
-    poolSelect.addEventListener("change", syncSelectedPoolUI);
+    poolSelect.addEventListener("change", () => {
+      populateCharacterOptions("");
+      syncSelectedPoolUI();
+    });
     characterNameInput.addEventListener("change", updateAutomaticResult);
     resetButton.addEventListener("click", resetForm);
     searchInput.addEventListener("input", renderRecordList);
