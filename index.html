@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>如鸢抽卡记录本</title>
+  <style>
+    :root {
+      --bg: #f5f2ec;
+      --paper: #fffdfa;
+      --card: #ffffff;
+      --text: #29241f;
+      --sub: #756b60;
+      --line: #e7ddd0;
+      --gold: #bd8737;
+      --gold-soft: #faf0df;
+      --accent: #724b28;
+      --danger: #b42318;
+      --success: #127a4a;
+      --shadow: 0 12px 32px rgba(70, 51, 30, 0.07);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 18px 40px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #3d2b1e 0%, #68472b 58%, #9b6a35 100%);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 25px 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      color: #fff;
+    }
+
+    .hero p {
+      margin: 0;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.76);
+      max-width: 920px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 10px 24px rgba(86, 60, 26, 0.04);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--sub);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .hero-badge {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff5e6;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: minmax(360px, 0.9fr) minmax(420px, 1.1fr);
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 10px 24px rgba(86, 60, 26, 0.04);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .section-head .section-title {
+      margin: 0;
+    }
+
+    .manager-panel {
+      margin-bottom: 18px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 24px rgba(86, 60, 26, 0.04);
+      overflow: hidden;
+    }
+
+    .manager-panel summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px;
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 700;
+      list-style: none;
+      user-select: none;
+    }
+
+    .manager-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .manager-panel summary::after {
+      content: "展开";
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--gold-soft);
+      color: #9b6a1d;
+      font-size: 12px;
+    }
+
+    .manager-panel[open] summary::after {
+      content: "收起";
+    }
+
+    .manager-body {
+      padding: 0 20px 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .manager-grid {
+      display: grid;
+      grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr);
+      gap: 18px;
+      padding-top: 18px;
+      align-items: start;
+    }
+
+    .manager-form {
+      padding: 18px;
+      border-radius: 18px;
+      background: #fffaf2;
+      border: 1px solid var(--line);
+    }
+
+    .manager-list {
+      max-height: 480px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .manager-list table {
+      border: 0;
+      border-radius: 0;
+    }
+
+    .manager-list th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .section-note {
+      color: var(--sub);
+      font-size: 13px;
+      line-height: 1.7;
+      margin: -8px 0 14px;
+    }
+
+    .section-title {
+      margin: 0 0 16px;
+      font-size: 20px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .sub-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .mini-stat {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 20px;
+    }
+
+    .mini-stat h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    .mini-stat-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px dashed #eedfca;
+      font-size: 14px;
+    }
+
+    .mini-stat-row:last-child {
+      border-bottom: 0;
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field label {
+      font-size: 14px;
+      color: var(--sub);
+      font-weight: 600;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #dcc7a8;
+      border-radius: 11px;
+      padding: 11px 13px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #c58e34;
+      box-shadow: 0 0 0 4px rgba(214, 164, 76, 0.16);
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .button-row,
+    .toolbar,
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: #7b542f;
+      color: #fff;
+    }
+
+    .secondary {
+      background: #f4eee2;
+      color: var(--text);
+    }
+
+    .ghost {
+      background: var(--gold-soft);
+      color: #9b6a1d;
+    }
+
+    .danger {
+      background: #fff0ef;
+      color: var(--danger);
+    }
+
+    .toolbar {
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .toolbar input,
+    .toolbar select {
+      min-width: 180px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--gold-soft);
+      color: #9c6b20;
+    }
+
+    .tag-standard {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .tag-limited {
+      background: #fff2da;
+      color: #9b6a1d;
+    }
+
+    .tag-success {
+      background: #e9f8f1;
+      color: var(--success);
+    }
+
+    .tag-warning {
+      background: #fff4e5;
+      color: #b26b0e;
+    }
+
+    .tag-danger {
+      background: #fff1f1;
+      color: var(--danger);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 13px 12px;
+      text-align: left;
+      border-bottom: 1px solid #efe3d1;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #fbf4e7;
+      color: var(--sub);
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .empty {
+      padding: 38px 18px;
+      text-align: center;
+      border: 1px dashed #dfcdb3;
+      border-radius: 16px;
+      color: var(--sub);
+      background: #fcfaf6;
+    }
+
+    .empty strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    .tips {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: #fff8ea;
+      border: 1px solid var(--line);
+      color: #735f47;
+      line-height: 1.8;
+      font-size: 13px;
+    }
+
+    .pool-status {
+      margin-top: 0;
+      padding: 16px;
+      background: #f8f3ea;
+    }
+
+    .pool-status-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .pool-status-meta {
+      color: var(--sub);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .pity-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 12px 0 7px;
+      font-size: 13px;
+    }
+
+    .progress {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e8ddd0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #bd8737, #7b542f);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: minmax(240px, 1.5fr) minmax(170px, 1fr) minmax(150px, 0.8fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .data-panel {
+      margin-top: 16px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .data-panel summary {
+      cursor: pointer;
+      color: var(--sub);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .data-panel .button-row {
+      margin-top: 12px;
+    }
+
+    .pool-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .pool-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .pool-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .pool-card h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+    }
+
+    .pool-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .pool-metric {
+      padding: 9px;
+      border-radius: 10px;
+      background: #f8f5f0;
+    }
+
+    .pool-metric span {
+      display: block;
+      color: var(--sub);
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    .pool-metric strong {
+      font-size: 16px;
+      color: var(--accent);
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--sub);
+      line-height: 1.7;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1080px) {
+      .stats,
+      .sub-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .top-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .manager-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .filter-grid input {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        padding: 16px;
+      }
+
+      .hero {
+        padding: 20px;
+      }
+
+      .hero h1 {
+        font-size: 26px;
+      }
+
+      .hero-top {
+        display: block;
+      }
+
+      .hero-badge {
+        display: inline-flex;
+        margin-top: 14px;
+      }
+
+      .stats,
+      .sub-grid,
+      .field-row,
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-grid input {
+        grid-column: auto;
+      }
+
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .toolbar-left,
+      .toolbar-right {
+        width: 100%;
+      }
+
+      .toolbar input,
+      .toolbar select {
+        min-width: 0;
+        width: 100%;
+      }
+    }
+  
+    .public-note {
+      margin: 0 0 14px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 253, 250, 0.9);
+      color: var(--sub);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .public-note span {
+      color: var(--accent);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>抽卡记录本</h1>
+          <p>
+            选择卡池、填写抽数和抽到的密探，其余结果自动计算。卡池、记录和统计均保存在当前浏览器。
+          </p>
+        </div>
+        <div class="hero-badge">40 抽保底 · 各池独立 · 歪后必 UP</div>
+      </div>
+    </section>
+
+    <section class="stats" id="overallStats"></section>
+
+    <div class="top-grid">
+      <aside class="card">
+        <div class="section-head">
+          <h2 class="section-title">记录一次招募</h2>
+          <span class="tag">仅填 3 项</span>
+        </div>
+        <form id="recordForm">
+          <input type="hidden" id="recordId" />
+
+          <div class="field-row">
+            <div class="field">
+              <label for="recordDate">记录日期</label>
+              <input id="recordDate" type="date" required />
+            </div>
+            <div class="field">
+              <label for="poolTypeDisplay">卡池类型</label>
+              <input id="poolTypeDisplay" type="text" value="普池" readonly />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="poolSelect">选择卡池</label>
+            <select id="poolSelect" required></select>
+          </div>
+
+          <div class="tips pool-status" id="selectedPoolInfo">
+            选择卡池后显示开放时间和当期 UP。
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="pullCount">本次抽数</label>
+              <input id="pullCount" type="number" min="1" step="1" placeholder="例如：30" required />
+            </div>
+            <div class="field">
+              <label for="resultDisplay">自动判断结果</label>
+              <input id="resultDisplay" type="text" value="未出绝密" readonly />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="characterName">本次出的密探</label>
+            <select id="characterName">
+              <option value="">未出绝密 / 仅累计抽数</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="notes">备注（可选，不参与统计）</label>
+            <input id="notes" type="text" placeholder="例如：免费十连、单抽出金" />
+          </div>
+
+          <div class="button-row">
+            <button type="submit" class="primary" id="submitButton">保存记录</button>
+            <button type="button" class="secondary" id="resetButton">清空表单</button>
+          </div>
+        </form>
+
+      </aside>
+
+      <div class="sub-grid">
+        <section class="mini-stat" id="standardStat"></section>
+        <section class="mini-stat" id="limitedStat"></section>
+      </div>
+    </div>
+
+    <details class="manager-panel" id="poolManagerPanel">
+      <summary>
+        <span>卡池管理</span>
+        <span class="small">新增或修改卡池与当期 UP</span>
+      </summary>
+      <div class="manager-body">
+        <div class="manager-grid">
+          <form class="manager-form" id="poolForm">
+            <input type="hidden" id="editingPoolId" />
+            <h2 class="section-title" id="poolFormTitle">新增限定卡池</h2>
+            <p class="section-note">填写后会立即出现在抽卡录入和筛选下拉框中。</p>
+            <div class="field">
+              <label for="managedPoolName">卡池名称</label>
+              <input id="managedPoolName" type="text" placeholder="例如：新池名称" required />
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="managedPoolStart">开始日期</label>
+                <input id="managedPoolStart" type="date" required />
+              </div>
+              <div class="field">
+                <label for="managedPoolEnd">结束日期</label>
+                <input id="managedPoolEnd" type="date" required />
+              </div>
+            </div>
+            <div class="field">
+              <label for="managedPoolUps">当期 UP 密探</label>
+              <input id="managedPoolUps" type="text" placeholder="用顿号或逗号分隔，例如：密探甲、密探乙" required />
+              <div class="small">支持双 UP、三 UP；新名字会自动加入密探下拉框。</div>
+            </div>
+            <div class="button-row">
+              <button type="submit" class="primary" id="savePoolButton">保存卡池</button>
+              <button type="button" class="secondary hidden" id="cancelPoolEditButton">取消编辑</button>
+            </div>
+          </form>
+          <div>
+            <h2 class="section-title">已录入卡池</h2>
+            <p class="section-note">绣衣天下为固定普池；限定池支持编辑和删除。</p>
+            <div class="manager-list" id="managedPoolList"></div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <section class="card" style="margin-bottom: 18px;">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">卡池进度</h2>
+          <div class="small">每个卡池独立计算垫抽和 UP 保底</div>
+        </div>
+        <button type="button" class="secondary" id="toggleAllPoolsButton">只看有记录的卡池</button>
+      </div>
+      <div id="poolSummary"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">招募明细</h2>
+          <div class="small" id="recordCountText">0 条记录</div>
+        </div>
+      </div>
+      <div class="filter-grid">
+        <input id="searchInput" type="text" placeholder="搜索卡池、密探或备注" />
+        <select id="poolFilter">
+          <option value="">全部卡池</option>
+        </select>
+        <select id="typeFilter">
+          <option value="">全部类型</option>
+          <option value="standard">普池</option>
+          <option value="limited">限定池</option>
+        </select>
+      </div>
+      <div id="recordList"></div>
+      <details class="data-panel">
+        <summary>数据备份与清理</summary>
+        <div class="button-row">
+          <button type="button" class="ghost" id="exportButton">导出数据</button>
+          <button type="button" class="ghost" id="importButton">导入数据</button>
+          <button type="button" class="danger" id="clearAllButton">清空全部</button>
+          <input id="importFileInput" type="file" accept=".json,application/json" hidden />
+        </div>
+      </details>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "gacha_tracker_records_v1";
+    const POOL_STORAGE_KEY = "gacha_tracker_pools_v1";
+
+    const CHARACTERS = [
+      "程普", "钟繇", "程昱", "蒯越", "凌统", "诸葛诞", "张燕", "郭汜", "张郃", "张修",
+      "干吉", "孙权", "孙尚香", "郭解", "吕蒙", "陆逊", "吕布", "刘璋", "马腾", "董白",
+      "安期", "荀攸", "夏侯惇", "戏学", "张仲景", "马超", "张辽", "张绣", "满宠", "司马徽",
+      "虞翻", "黄盖", "张闿", "张鲁", "张角", "葛洪", "贾诩", "夏侯渊", "朱然", "诸葛亮",
+      "祢衡", "董奉", "黄月英", "徐庶", "庞统", "华佗", "杨修", "士燮", "刘繇", "孔融",
+      "诸葛瑾", "甘宁", "刘豹", "蔡琰", "令狐茂", "周瑜", "鲁肃", "王粲", "曹丕", "庞德",
+      "张昭", "曹植", "太史慈", "张邈", "张飞", "荀彧", "郭嘉"
+    ].sort((a, b) => a.localeCompare(b, "zh-CN"));
+
+    const DEFAULT_POOL_CATALOG = [
+      { id: "standard", type: "standard", name: "绣衣天下", start: "", end: "", ups: [] },
+      { id: "2024-10-01", type: "limited", name: "名剑江东", start: "2024-10-01", end: "2024-11-18", ups: ["孙尚香", "孙权"] },
+      { id: "2024-10-03", type: "limited", name: "动如雷霆", start: "2024-10-03", end: "2024-10-23", ups: ["张辽", "马超"] },
+      { id: "2024-10-24", type: "limited", name: "九门烽燧", start: "2024-10-24", end: "2024-12-04", ups: ["周瑜", "干吉"] },
+      { id: "2024-11-07", type: "limited", name: "长生之术", start: "2024-11-07", end: "2024-12-04", ups: ["葛洪", "令狐茂"] },
+      { id: "2024-11-21", type: "limited", name: "弹香展骥", start: "2024-11-21", end: "2025-01-01", ups: ["荀彧", "庞统"] },
+      { id: "2024-12-12", type: "limited", name: "弹剑酿花", start: "2024-12-12", end: "2025-01-15", ups: ["徐庶", "蔡琰", "王粲"] },
+      { id: "2025-01-16", type: "limited", name: "天道不逾", start: "2025-01-16", end: "2025-02-26", ups: ["陆逊", "张仲景", "张角"] },
+      { id: "2025-01-23", type: "limited", name: "形气复生", start: "2025-01-23", end: "2025-02-19", ups: ["张修", "张鲁"] },
+      { id: "2025-02-20", type: "limited", name: "绮花隐豹", start: "2025-02-20", end: "2025-03-19", ups: ["刘豹", "张郃"] },
+      { id: "2025-03-13", type: "limited", name: "织囊画诗", start: "2025-03-13", end: "2025-04-23", ups: ["张闿", "张飞"] },
+      { id: "2025-04-10", type: "limited", name: "欺天罔地", start: "2025-04-10", end: "2025-05-07", ups: ["郭解", "戏学", "张邈"] },
+      { id: "2025-04-24", type: "limited", name: "披弓衔刃", start: "2025-04-24", end: "2025-05-21", ups: ["黄盖", "太史慈"] },
+      { id: "2025-04-30", type: "limited", name: "击金鸣鼓", start: "2025-04-30", end: "2025-06-11", ups: ["甘宁", "甄宓"] },
+      { id: "2025-05-29", type: "limited", name: "燕燕幽篁", start: "2025-05-29", end: "2025-06-25", ups: ["虞翻", "张燕"] },
+      { id: "2025-06-26", type: "limited", name: "壁林邀月", start: "2025-06-26", end: "2025-08-06", ups: ["荀攸", "公孙珊", "夏侯惇"] },
+      { id: "2025-07-03", type: "limited", name: "云雨滂润", start: "2025-07-03", end: "2025-08-06", ups: ["诸葛瑾", "诸葛诞"] },
+      { id: "2025-07-31", type: "limited", name: "金相玉质", start: "2025-07-31", end: "2025-08-27", ups: ["黄月英", "孔融"] },
+      { id: "2025-08-21", type: "limited", name: "膝陵张胆", start: "2025-08-21", end: "2025-10-01", ups: ["凌统", "安期"] },
+      { id: "2025-09-11", type: "limited", name: "道司天英", start: "2025-09-11", end: "2025-10-08", ups: ["董奉", "曹植"] },
+      { id: "2025-10-16", type: "limited", name: "风兴云蒸", start: "2025-10-16", end: "2025-11-26", ups: ["祢衡", "蒯越"] },
+      { id: "2025-11-06", type: "limited", name: "英徽弥亮", start: "2025-11-06", end: "2025-12-03", ups: ["诸葛亮", "司马徽"] },
+      { id: "2025-12-11", type: "limited", name: "蛇蟒之蛰", start: "2025-12-11", end: "2026-01-21", ups: ["刘繇", "满宠"] },
+      { id: "2025-12-23", type: "limited", name: "天张封狼", start: "2025-12-23", end: "2026-01-19", ups: ["张绣", "朱然"] },
+      { id: "2026-02-05", type: "limited", name: "契阔谈宴", start: "2026-02-05", end: "2026-03-18", ups: ["小乔", "程昱", "士燮"] },
+      { id: "2026-02-26", type: "limited", name: "白日昭只", start: "2026-02-26", end: "2026-03-25", ups: ["张昭", "董白"] },
+      { id: "2026-04-02", type: "limited", name: "形骸成光", start: "2026-04-02", end: "2026-05-13", ups: ["庞羲", "马腾"] },
+      { id: "2026-05-21", type: "limited", name: "铁弦千钧", start: "2026-05-21", end: "2026-06-17", ups: ["程普", "钟繇"] },
+      { id: "2026-05-28", type: "limited", name: "碧渊玉水", start: "2026-05-28", end: "2026-07-08", ups: ["夏侯渊", "刘璋"] },
+      { id: "2026-07-23", type: "limited", name: "桓心之梦", start: "2026-07-23", end: "2026-09-02", ups: ["吕布", "曹丕"] },
+      { id: "2026-09-10", type: "limited", name: "限定池 2026.9.10", start: "2026-09-10", end: "2026-10-07", ups: ["郭女王", "庞德"] }
+    ];
+
+    let POOL_CATALOG = loadPoolCatalog();
+
+    const form = document.getElementById("recordForm");
+    const recordIdInput = document.getElementById("recordId");
+    const recordDateInput = document.getElementById("recordDate");
+    const poolTypeDisplay = document.getElementById("poolTypeDisplay");
+    const poolSelect = document.getElementById("poolSelect");
+    const selectedPoolInfo = document.getElementById("selectedPoolInfo");
+    const pullCountInput = document.getElementById("pullCount");
+    const resultDisplay = document.getElementById("resultDisplay");
+    const characterNameInput = document.getElementById("characterName");
+    const notesInput = document.getElementById("notes");
+    const submitButton = document.getElementById("submitButton");
+    const resetButton = document.getElementById("resetButton");
+    const overallStats = document.getElementById("overallStats");
+    const standardStat = document.getElementById("standardStat");
+    const limitedStat = document.getElementById("limitedStat");
+    const poolSummaryContainer = document.getElementById("poolSummary");
+    const recordListContainer = document.getElementById("recordList");
+    const searchInput = document.getElementById("searchInput");
+    const poolFilter = document.getElementById("poolFilter");
+    const typeFilter = document.getElementById("typeFilter");
+    const exportButton = document.getElementById("exportButton");
+    const importButton = document.getElementById("importButton");
+    const importFileInput = document.getElementById("importFileInput");
+    const clearAllButton = document.getElementById("clearAllButton");
+    const toggleAllPoolsButton = document.getElementById("toggleAllPoolsButton");
+    const recordCountText = document.getElementById("recordCountText");
+    const poolManagerPanel = document.getElementById("poolManagerPanel");
+    const poolForm = document.getElementById("poolForm");
+    const editingPoolIdInput = document.getElementById("editingPoolId");
+    const poolFormTitle = document.getElementById("poolFormTitle");
+    const managedPoolNameInput = document.getElementById("managedPoolName");
+    const managedPoolStartInput = document.getElementById("managedPoolStart");
+    const managedPoolEndInput = document.getElementById("managedPoolEnd");
+    const managedPoolUpsInput = document.getElementById("managedPoolUps");
+    const savePoolButton = document.getElementById("savePoolButton");
+    const cancelPoolEditButton = document.getElementById("cancelPoolEditButton");
+    const managedPoolList = document.getElementById("managedPoolList");
+
+    let records = loadRecords();
+    let showAllPools = true;
+
+    function todayString() {
+      const today = new Date();
+      const offset = today.getTimezoneOffset() * 60000;
+      return new Date(today.getTime() - offset).toISOString().slice(0, 10);
+    }
+
+    function getPoolById(poolId) {
+      return POOL_CATALOG.find((pool) => pool.id === poolId) || null;
+    }
+
+    function findPoolForLegacyRecord(item) {
+      if (item.poolId) {
+        const matchedById = getPoolById(item.poolId);
+        if (matchedById) return matchedById;
+      }
+      return (
+        POOL_CATALOG.find((pool) => pool.name === item.poolName) ||
+        (item.poolName === "绣衣天下" ? POOL_CATALOG[0] : null)
+      );
+    }
+
+    function isGold(resultType) {
+      return resultType !== "none";
+    }
+
+    function isLimitedUp(resultType) {
+      return resultType === "up" || resultType === "up1" || resultType === "up2";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatPercent(value) {
+      if (!Number.isFinite(value)) return "0%";
+      return `${(value * 100).toFixed(1)}%`;
+    }
+
+    function formatAverage(totalPulls, totalGold) {
+      if (!totalGold) return "-";
+      return (totalPulls / totalGold).toFixed(1);
+    }
+
+    function normalizePool(pool) {
+      return {
+        id: String(pool.id || `pool-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`),
+        type: pool.type === "standard" ? "standard" : "limited",
+        name: String(pool.name || "未命名卡池").trim(),
+        start: String(pool.start || ""),
+        end: String(pool.end || ""),
+        ups: Array.isArray(pool.ups) ? pool.ups.map((name) => String(name).trim()).filter(Boolean) : [],
+      };
+    }
+
+    function loadPoolCatalog() {
+      try {
+        const raw = localStorage.getItem(POOL_STORAGE_KEY);
+        if (!raw) return DEFAULT_POOL_CATALOG.map(normalizePool);
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || !parsed.length) throw new Error("卡池数据为空");
+        const normalized = parsed.map(normalizePool);
+        if (!normalized.some((pool) => pool.id === "standard")) {
+          normalized.unshift(normalizePool(DEFAULT_POOL_CATALOG[0]));
+        }
+        return normalized;
+      } catch (error) {
+        console.error("读取卡池失败", error);
+        return DEFAULT_POOL_CATALOG.map(normalizePool);
+      }
+    }
+
+    function savePoolCatalog() {
+      localStorage.setItem(POOL_STORAGE_KEY, JSON.stringify(POOL_CATALOG));
+    }
+
+    function loadRecords() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        const data = Array.isArray(parsed) ? parsed : parsed.records;
+        if (!Array.isArray(data)) return [];
+        return data.map(normalizeRecord);
+      } catch (error) {
+        console.error("读取记录失败", error);
+        return [];
+      }
+    }
+
+    function normalizeRecord(item) {
+      const matchedPool = findPoolForLegacyRecord(item);
+      const inferredPoolType = matchedPool?.type || item.poolType || (item.poolName === "绣衣天下" ? "standard" : "limited");
+      let resultType = item.resultType || "none";
+
+      if (["limited", "up1", "up2"].includes(resultType)) resultType = "up";
+      if (resultType === "offbanner") resultType = "nonup";
+
+      if (inferredPoolType === "standard" && !["none", "standard-ssr"].includes(resultType)) {
+        resultType = resultType === "none" ? "none" : "standard-ssr";
+      }
+
+      if (inferredPoolType === "limited" && !["none", "up", "nonup"].includes(resultType)) {
+        resultType = "none";
+      }
+
+      return {
+        id: item.id || crypto.randomUUID(),
+        date: item.date || todayString(),
+        poolId: matchedPool?.id || item.poolId || "",
+        poolType: inferredPoolType,
+        poolName: matchedPool?.name || item.poolName || "未命名卡池",
+        upCharacters: matchedPool?.ups || item.upCharacters || [item.upOne, item.upTwo].filter(Boolean),
+        pullCount: Number(item.pullCount || 0),
+        resultType,
+        characterName: item.characterName || "",
+        notes: item.notes || "",
+        createdAt: item.createdAt || new Date().toISOString(),
+        updatedAt: item.updatedAt || new Date().toISOString(),
+      };
+    }
+
+    function saveRecords() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function populatePoolOptions() {
+      const currentValue = poolSelect.value;
+      poolSelect.innerHTML = POOL_CATALOG.map((pool) => {
+        const dateLabel = pool.start ? `${pool.start} 至 ${pool.end}` : "常驻";
+        const upLabel = pool.ups.length ? `｜${pool.ups.join("、")}` : "";
+        return `<option value="${pool.id}">${escapeHtml(pool.name)}｜${dateLabel}${escapeHtml(upLabel)}</option>`;
+      }).join("");
+      poolSelect.value = POOL_CATALOG.some((pool) => pool.id === currentValue) ? currentValue : "standard";
+    }
+
+    function populateCharacterOptions(selectedValue = "") {
+      const poolUps = POOL_CATALOG.flatMap((pool) => pool.ups);
+      const allCharacters = Array.from(new Set([...CHARACTERS, ...poolUps])).sort((a, b) =>
+        a.localeCompare(b, "zh-CN")
+      );
+      characterNameInput.innerHTML =
+        '<option value="">未出绝密 / 仅累计抽数</option>' +
+        allCharacters
+          .map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+          .join("");
+      characterNameInput.value = allCharacters.includes(selectedValue) ? selectedValue : "";
+    }
+
+    function determineResultType(pool, characterName) {
+      if (!characterName) return "none";
+      if (pool.type === "standard") return "standard-ssr";
+      return pool.ups.includes(characterName) ? "up" : "nonup";
+    }
+
+    function resultText(resultType) {
+      if (resultType === "standard-ssr") return "普池出绝密";
+      if (resultType === "up") return "命中当期 UP";
+      if (resultType === "nonup") return "歪了 / 非当期 UP";
+      return "未出绝密";
+    }
+
+    function syncSelectedPoolUI() {
+      const pool = getPoolById(poolSelect.value) || POOL_CATALOG[0];
+      const poolState = getPoolSummary(records).find((item) => item.poolId === pool.id);
+      const pityProgress = poolState?.pityProgress || 0;
+      const toNextPity = poolState?.toNextPity ?? 40;
+      const progressPercent = Math.min(100, (pityProgress / 40) * 100);
+      poolTypeDisplay.value = pool.type === "standard" ? "普池" : "限定池";
+      const guaranteeTag =
+        pool.type === "standard"
+          ? '<span class="tag tag-standard">普池</span>'
+          : poolState?.guaranteedUp
+            ? '<span class="tag tag-success">下次绝密必出 UP</span>'
+            : '<span class="tag tag-warning">小保底，可能歪</span>';
+      selectedPoolInfo.innerHTML = `
+        <div class="pool-status-head">
+          <strong>${escapeHtml(pool.name)}</strong>
+          ${guaranteeTag}
+        </div>
+        <div class="pool-status-meta">
+          ${
+            pool.type === "standard"
+              ? "常驻普池 · 保底长期保留"
+              : `${pool.start} 至 ${pool.end}<br>UP：${escapeHtml(pool.ups.join("、"))}`
+          }
+        </div>
+        <div class="pity-line">
+          <span>当前垫抽 <strong>${pityProgress}</strong></span>
+          <span>距保底 <strong>${toNextPity}</strong> 抽</span>
+        </div>
+        <div class="progress"><div class="progress-bar" style="width:${progressPercent}%"></div></div>
+      `;
+      updateAutomaticResult();
+    }
+
+    function updateAutomaticResult() {
+      const pool = getPoolById(poolSelect.value) || POOL_CATALOG[0];
+      const resultType = determineResultType(pool, characterNameInput.value);
+      const poolState = getPoolSummary(records).find((item) => item.poolId === pool.id);
+      resultDisplay.value =
+        pool.type === "limited" && poolState?.guaranteedUp && resultType === "nonup"
+          ? "规则冲突：本次应必出 UP"
+          : resultText(resultType);
+    }
+
+    function resultLabel(record) {
+      if (record.poolType === "standard") {
+        return record.resultType === "standard-ssr"
+          ? '<span class="tag tag-success">普池出绝密</span>'
+          : '<span class="tag tag-standard">未出绝密</span>';
+      }
+
+      if (isLimitedUp(record.resultType)) {
+        return `<span class="tag tag-success">命中 UP${record.characterName ? ` · ${escapeHtml(record.characterName)}` : ""}</span>`;
+      }
+      if (record.resultType === "nonup") {
+        return '<span class="tag tag-warning">歪了 / 非 UP</span>';
+      }
+      return '<span class="tag tag-standard">未出绝密</span>';
+    }
+
+    function summarize(data) {
+      const totalPulls = data.reduce((sum, item) => sum + item.pullCount, 0);
+      const totalGold = data.filter((item) => isGold(item.resultType)).length;
+      const limitedData = data.filter((item) => item.poolType === "limited");
+      const standardData = data.filter((item) => item.poolType === "standard");
+      const limitedGold = limitedData.filter((item) => isGold(item.resultType)).length;
+      const limitedUpGold = limitedData.filter((item) => isLimitedUp(item.resultType)).length;
+      const standardGold = standardData.filter((item) => isGold(item.resultType)).length;
+
+      const characterCountMap = new Map();
+      data.forEach((item) => {
+        if (!item.characterName || !isGold(item.resultType)) return;
+        characterCountMap.set(item.characterName, (characterCountMap.get(item.characterName) || 0) + 1);
+      });
+
+      const mostCommonCharacter = Array.from(characterCountMap.entries()).sort((a, b) => b[1] - a[1])[0] || null;
+
+      const limitedUpOnlyMap = new Map();
+      limitedData
+        .filter((item) => isLimitedUp(item.resultType) && item.characterName)
+        .forEach((item) => {
+          limitedUpOnlyMap.set(item.characterName, (limitedUpOnlyMap.get(item.characterName) || 0) + 1);
+        });
+
+      const mostCommonLimitedUp = Array.from(limitedUpOnlyMap.entries()).sort((a, b) => b[1] - a[1])[0] || null;
+
+      const limitedPoolOutcomes = getPoolSummary(data).filter((item) => item.poolType === "limited");
+      const smallPityAttempts = limitedPoolOutcomes.reduce((sum, item) => sum + item.smallPityAttempts, 0);
+      const directUpWins = limitedPoolOutcomes.reduce((sum, item) => sum + item.directUpWins, 0);
+
+      return {
+        totalPulls,
+        totalGold,
+        avgGoldPulls: formatAverage(totalPulls, totalGold),
+        limitedPulls: limitedData.reduce((sum, item) => sum + item.pullCount, 0),
+        limitedGold,
+        limitedUpGold,
+        limitedNoOffRate: smallPityAttempts ? directUpWins / smallPityAttempts : 0,
+        limitedAvgGoldPulls: formatAverage(
+          limitedData.reduce((sum, item) => sum + item.pullCount, 0),
+          limitedGold
+        ),
+        standardPulls: standardData.reduce((sum, item) => sum + item.pullCount, 0),
+        standardGold,
+        standardAvgGoldPulls: formatAverage(
+          standardData.reduce((sum, item) => sum + item.pullCount, 0),
+          standardGold
+        ),
+        totalPools: new Set(data.map((item) => `${item.poolType}:${item.poolName}`)).size,
+        mostCommonCharacter,
+        mostCommonLimitedUp,
+      };
+    }
+
+    function getPoolSummary(data) {
+      const sorted = [...data].sort((a, b) => {
+        if (a.date === b.date) {
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        }
+        return a.date > b.date ? 1 : -1;
+      });
+
+      const map = new Map(
+        POOL_CATALOG.map((pool) => [
+          pool.id,
+          {
+            key: pool.id,
+            poolId: pool.id,
+            poolType: pool.type,
+            poolName: pool.name,
+            upCharacters: [...pool.ups],
+            start: pool.start,
+            end: pool.end,
+            totalPulls: 0,
+            totalGold: 0,
+            upGold: 0,
+            latestDate: "",
+            pityProgress: 0,
+            guaranteedUp: false,
+            smallPityAttempts: 0,
+            directUpWins: 0,
+            records: 0,
+          },
+        ])
+      );
+
+      sorted.forEach((item) => {
+        const key = item.poolId || `${item.poolType}::${item.poolName}`;
+        if (!map.has(key)) {
+          map.set(key, {
+            key,
+            poolId: item.poolId || "",
+            poolType: item.poolType,
+            poolName: item.poolName,
+            upCharacters: item.upCharacters || [],
+            start: "",
+            end: "",
+            totalPulls: 0,
+            totalGold: 0,
+            upGold: 0,
+            latestDate: "",
+            pityProgress: 0,
+            guaranteedUp: false,
+            smallPityAttempts: 0,
+            directUpWins: 0,
+            records: 0,
+          });
+        }
+
+        const current = map.get(key);
+        current.totalPulls += item.pullCount;
+        current.records += 1;
+        current.latestDate = item.date > current.latestDate ? item.date : current.latestDate;
+
+        if (isGold(item.resultType)) {
+          current.totalGold += 1;
+          if (isLimitedUp(item.resultType)) {
+            current.upGold += 1;
+            if (current.poolType === "limited" && !current.guaranteedUp) {
+              current.smallPityAttempts += 1;
+              current.directUpWins += 1;
+            }
+          } else if (item.resultType === "nonup" && current.poolType === "limited") {
+            if (!current.guaranteedUp) current.smallPityAttempts += 1;
+          }
+          current.pityProgress = 0;
+          if (current.poolType === "limited") {
+            current.guaranteedUp = item.resultType === "nonup";
+          }
+        } else {
+          current.pityProgress += item.pullCount;
+        }
+      });
+
+      return Array.from(map.values())
+        .map((item) => ({
+          ...item,
+          avgGoldPulls: formatAverage(item.totalPulls, item.totalGold),
+          upRate: item.smallPityAttempts ? item.directUpWins / item.smallPityAttempts : 0,
+          toNextPity: Math.max(0, 40 - item.pityProgress),
+        }))
+        .sort((a, b) => {
+          if (a.poolType !== b.poolType) return a.poolType === "standard" ? 1 : -1;
+          return (b.start || "").localeCompare(a.start || "");
+        });
+    }
+
+    function renderOverallStats() {
+      const summary = summarize(records);
+      const items = [
+        { label: "总招募次数", value: summary.totalPulls },
+        { label: "总绝密个数", value: summary.totalGold },
+        { label: "平均出绝密次数", value: summary.avgGoldPulls },
+        { label: "记录中的卡池数", value: summary.totalPools },
+      ];
+
+      overallStats.innerHTML = items
+        .map(
+          (item) => `
+            <div class="stat">
+              <div class="stat-label">${item.label}</div>
+              <div class="stat-value">${item.value}</div>
+            </div>
+          `
+        )
+        .join("");
+
+      if (summary.mostCommonCharacter) {
+        overallStats.innerHTML += `
+          <div class="stat">
+            <div class="stat-label">抽出次数最多的绝密密探</div>
+            <div class="stat-value" style="font-size:24px;">${escapeHtml(summary.mostCommonCharacter[0])}</div>
+            <div class="small">共抽出 ${summary.mostCommonCharacter[1]} 个</div>
+          </div>
+        `;
+      }
+
+      if (summary.mostCommonLimitedUp) {
+        overallStats.innerHTML += `
+          <div class="stat">
+            <div class="stat-label">抽中次数最多的当期 UP</div>
+            <div class="stat-value" style="font-size:24px;">${escapeHtml(summary.mostCommonLimitedUp[0])}</div>
+            <div class="small">作为当期 UP 抽到 ${summary.mostCommonLimitedUp[1]} 次</div>
+          </div>
+        `;
+      }
+    }
+
+    function renderMiniStats() {
+      const summary = summarize(records);
+
+      standardStat.innerHTML = `
+        <h3>普池统计</h3>
+        <div class="mini-stat-row"><span>总次数</span><strong>${summary.standardPulls}</strong></div>
+        <div class="mini-stat-row"><span>总绝密数</span><strong>${summary.standardGold}</strong></div>
+        <div class="mini-stat-row"><span>平均出绝密次数</span><strong>${summary.standardAvgGoldPulls}</strong></div>
+        <div class="small" style="margin-top:10px;">当前按卡池名等于 <code>绣衣天下</code> 识别为普池。</div>
+      `;
+
+      limitedStat.innerHTML = `
+        <h3>UP 池统计</h3>
+        <div class="mini-stat-row"><span>总次数</span><strong>${summary.limitedPulls}</strong></div>
+        <div class="mini-stat-row"><span>总绝密数</span><strong>${summary.limitedGold}</strong></div>
+        <div class="mini-stat-row"><span>UP 角色总数</span><strong>${summary.limitedUpGold}</strong></div>
+        <div class="mini-stat-row"><span>平均出绝密次数</span><strong>${summary.limitedAvgGoldPulls}</strong></div>
+        <div class="mini-stat-row"><span>小保底不歪率</span><strong>${formatPercent(summary.limitedNoOffRate)}</strong></div>
+        <div class="small" style="margin-top:10px;">仅统计小保底结果，大保底必出的 UP 不计入。</div>
+      `;
+    }
+
+    function updatePoolFilterOptions() {
+      const catalogNames = POOL_CATALOG.map((pool) => pool.name);
+      const importedNames = records
+        .map((item) => item.poolName.trim())
+        .filter((name) => name && !catalogNames.includes(name))
+        .sort((a, b) => a.localeCompare(b, "zh-CN"));
+      const poolNames = [...catalogNames, ...importedNames];
+      const currentValue = poolFilter.value;
+      poolFilter.innerHTML =
+        '<option value="">全部卡池</option>' +
+        poolNames.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
+      poolFilter.value = poolNames.includes(currentValue) ? currentValue : "";
+    }
+
+    function resetPoolForm() {
+      editingPoolIdInput.value = "";
+      managedPoolNameInput.value = "";
+      managedPoolStartInput.value = "";
+      managedPoolEndInput.value = "";
+      managedPoolUpsInput.value = "";
+      poolFormTitle.textContent = "新增限定卡池";
+      savePoolButton.textContent = "保存卡池";
+      cancelPoolEditButton.classList.add("hidden");
+    }
+
+    function parseUpCharacters(value) {
+      return Array.from(
+        new Set(
+          value
+            .split(/[、,，/；;]+/)
+            .map((name) => name.trim())
+            .filter(Boolean)
+        )
+      );
+    }
+
+    function renderManagedPoolList() {
+      const limitedPools = POOL_CATALOG
+        .filter((pool) => pool.type === "limited")
+        .sort((a, b) => (b.start || "").localeCompare(a.start || ""));
+
+      managedPoolList.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>卡池与时间</th>
+              <th>当期 UP</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${limitedPools
+              .map(
+                (pool) => `
+                  <tr>
+                    <td>
+                      <strong>${escapeHtml(pool.name)}</strong>
+                      <div class="small">${pool.start || "-"} 至 ${pool.end || "-"}</div>
+                    </td>
+                    <td>${escapeHtml(pool.ups.join("、") || "-")}</td>
+                    <td>
+                      <div class="button-row">
+                        <button type="button" class="ghost" onclick="editPool('${pool.id}')">编辑</button>
+                        <button type="button" class="danger" onclick="deletePool('${pool.id}')">删除</button>
+                      </div>
+                    </td>
+                  </tr>
+                `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function refreshPoolRelatedUI() {
+      savePoolCatalog();
+      populatePoolOptions();
+      populateCharacterOptions(characterNameInput.value);
+      updatePoolFilterOptions();
+      renderManagedPoolList();
+      renderPoolSummary();
+      renderRecordList();
+      syncSelectedPoolUI();
+    }
+
+    function renderPoolSummary() {
+      const allSummary = getPoolSummary(records);
+      const summaryList = showAllPools ? allSummary : allSummary.filter((item) => item.records > 0);
+      toggleAllPoolsButton.textContent = showAllPools ? "只看有记录的卡池" : "查看全部预置卡池";
+
+      if (!summaryList.length) {
+        poolSummaryContainer.innerHTML = `
+          <div class="empty">
+            <strong>还没有卡池进度</strong>
+            保存第一条招募记录后，这里会显示当前垫抽和下次绝密状态。
+          </div>
+        `;
+        return;
+      }
+
+      poolSummaryContainer.innerHTML = `
+        <div class="pool-summary-grid">
+          ${summaryList
+            .map((item) => {
+              const progressPercent = Math.min(100, (item.pityProgress / 40) * 100);
+              const status =
+                item.poolType === "standard"
+                  ? '<span class="tag tag-standard">普池</span>'
+                  : item.guaranteedUp
+                    ? '<span class="tag tag-success">下次必出 UP</span>'
+                    : '<span class="tag tag-warning">小保底</span>';
+              return `
+                <article class="pool-card">
+                  <div class="pool-card-head">
+                    <div>
+                      <h3>${escapeHtml(item.poolName)}</h3>
+                      <div class="small">${
+                        item.poolType === "limited"
+                          ? `${item.start || "-"} 至 ${item.end || "-"}`
+                          : "常驻普池"
+                      }</div>
+                    </div>
+                    ${status}
+                  </div>
+                  ${
+                    item.poolType === "limited"
+                      ? `<div class="small">UP：${escapeHtml(item.upCharacters.join("、") || "-")}</div>`
+                      : ""
+                  }
+                  <div class="pool-card-grid">
+                    <div class="pool-metric"><span>累计抽数</span><strong>${item.totalPulls}</strong></div>
+                    <div class="pool-metric"><span>绝密 / UP</span><strong>${item.totalGold}${item.poolType === "limited" ? ` / ${item.upGold}` : ""}</strong></div>
+                    <div class="pool-metric"><span>${item.poolType === "limited" ? "小保底不歪" : "平均出金"}</span><strong>${item.poolType === "limited" ? formatPercent(item.upRate) : item.avgGoldPulls}</strong></div>
+                  </div>
+                  <div class="pity-line">
+                    <span>已垫 <strong>${item.pityProgress}</strong> 抽</span>
+                    <span>距保底 <strong>${item.toNextPity}</strong> 抽</span>
+                  </div>
+                  <div class="progress"><div class="progress-bar" style="width:${progressPercent}%"></div></div>
+                </article>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
+    }
+
+    function getFilteredRecords() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const selectedPool = poolFilter.value.trim();
+      const selectedType = typeFilter.value.trim();
+
+      return [...records]
+        .filter((item) => {
+          const matchesPool = !selectedPool || item.poolName.trim() === selectedPool;
+          const matchesType = !selectedType || item.poolType === selectedType;
+          const target = `${item.poolName} ${item.characterName} ${item.notes} ${(item.upCharacters || []).join(" ")}`.toLowerCase();
+          const matchesKeyword = !keyword || target.includes(keyword);
+          return matchesPool && matchesType && matchesKeyword;
+        })
+        .sort((a, b) => {
+          if (a.date === b.date) {
+            return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
+          }
+          return a.date < b.date ? 1 : -1;
+        });
+    }
+
+    function renderRecordList() {
+      const filtered = getFilteredRecords();
+      recordCountText.textContent =
+        filtered.length === records.length ? `${records.length} 条记录` : `${filtered.length} / ${records.length} 条记录`;
+      if (!filtered.length) {
+        recordListContainer.innerHTML = `
+          <div class="empty">
+            <strong>${records.length ? "没有符合筛选条件的记录" : "还没有招募记录"}</strong>
+            ${records.length ? "换一个卡池或清除搜索词试试。" : "在上方选择卡池并保存一次招募，明细会显示在这里。"}
+          </div>
+        `;
+        return;
+      }
+
+      recordListContainer.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>卡池</th>
+                <th>抽数</th>
+                <th>结果</th>
+                <th>本次出的密探</th>
+                <th>备注</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered
+                .map(
+                  (item) => `
+                    <tr>
+                      <td>${item.date}</td>
+                      <td>
+                        ${item.poolType === "limited" ? '<span class="tag tag-limited">限定池</span>' : '<span class="tag tag-standard">普池</span>'}
+                        <div style="margin-top:6px;"><strong>${escapeHtml(item.poolName)}</strong></div>
+                        ${
+                          item.poolType === "limited"
+                            ? `<div class="small">UP：${escapeHtml((item.upCharacters || []).join("、") || "-")}</div>`
+                            : ""
+                        }
+                      </td>
+                      <td>${item.pullCount}</td>
+                      <td>${resultLabel(item)}</td>
+                      <td>${item.characterName ? escapeHtml(item.characterName) : '<span class="small">未填写</span>'}</td>
+                      <td>${item.notes ? escapeHtml(item.notes) : '<span class="small">无</span>'}</td>
+                      <td>
+                        <div class="button-row">
+                          <button type="button" class="ghost" onclick="editRecord('${item.id}')">编辑</button>
+                          <button type="button" class="danger" onclick="deleteRecord('${item.id}')">删除</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function resetForm() {
+      recordIdInput.value = "";
+      recordDateInput.value = todayString();
+      poolSelect.value = "standard";
+      pullCountInput.value = "";
+      populateCharacterOptions("");
+      notesInput.value = "";
+      syncSelectedPoolUI();
+      submitButton.textContent = "保存记录";
+    }
+
+    function rerender() {
+      saveRecords();
+      renderOverallStats();
+      renderMiniStats();
+      updatePoolFilterOptions();
+      renderPoolSummary();
+      renderRecordList();
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const pool = getPoolById(poolSelect.value) || POOL_CATALOG[0];
+      const characterName = characterNameInput.value.trim();
+      const payload = {
+        id: recordIdInput.value || crypto.randomUUID(),
+        date: recordDateInput.value,
+        poolId: pool.id,
+        poolType: pool.type,
+        poolName: pool.name,
+        upCharacters: [...pool.ups],
+        pullCount: Number(pullCountInput.value),
+        resultType: determineResultType(pool, characterName),
+        characterName,
+        notes: notesInput.value.trim(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (!payload.pullCount || payload.pullCount < 1) {
+        alert("本次抽数需要是大于 0 的数字。");
+        return;
+      }
+
+      const existingIndex = records.findIndex((item) => item.id === payload.id);
+      if (existingIndex >= 0) {
+        payload.createdAt = records[existingIndex].createdAt || payload.createdAt;
+        records[existingIndex] = payload;
+      } else {
+        records.push(payload);
+      }
+
+      rerender();
+      resetForm();
+    });
+
+    poolSelect.addEventListener("change", syncSelectedPoolUI);
+    characterNameInput.addEventListener("change", updateAutomaticResult);
+    resetButton.addEventListener("click", resetForm);
+    searchInput.addEventListener("input", renderRecordList);
+    poolFilter.addEventListener("change", renderRecordList);
+    typeFilter.addEventListener("change", renderRecordList);
+    toggleAllPoolsButton.addEventListener("click", () => {
+      showAllPools = !showAllPools;
+      renderPoolSummary();
+    });
+
+    exportButton.addEventListener("click", () => {
+      const data = {
+        exportedAt: new Date().toISOString(),
+        rules: {
+          standardPoolName: "绣衣天下",
+          pity: 40,
+          limitedDescription: "限定池通常双 UP，部分特殊池含三名 UP；两个保底内必出当期 UP 之一",
+        },
+        poolCatalog: POOL_CATALOG,
+        records,
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `抽卡记录备份_${todayString()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    importButton.addEventListener("click", () => importFileInput.click());
+
+    importFileInput.addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const importedRecords = Array.isArray(parsed) ? parsed : parsed.records;
+        if (!Array.isArray(importedRecords)) throw new Error("文件格式不正确");
+
+        const shouldReplace = confirm("导入会覆盖当前浏览器里的记录，是否继续？");
+        if (!shouldReplace) return;
+
+        if (Array.isArray(parsed.poolCatalog) && parsed.poolCatalog.length) {
+          POOL_CATALOG = parsed.poolCatalog.map(normalizePool);
+          if (!POOL_CATALOG.some((pool) => pool.id === "standard")) {
+            POOL_CATALOG.unshift(normalizePool(DEFAULT_POOL_CATALOG[0]));
+          }
+          savePoolCatalog();
+          populatePoolOptions();
+          populateCharacterOptions();
+          renderManagedPoolList();
+        }
+        records = importedRecords.map(normalizeRecord);
+        rerender();
+        resetForm();
+        alert("导入成功。");
+      } catch (error) {
+        alert("导入失败，请确认文件是本工具导出的 JSON。");
+      } finally {
+        importFileInput.value = "";
+      }
+    });
+
+    clearAllButton.addEventListener("click", () => {
+      const confirmed = confirm("确认清空全部记录吗？此操作无法撤销。");
+      if (!confirmed) return;
+      records = [];
+      rerender();
+      resetForm();
+    });
+
+    poolForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const ups = parseUpCharacters(managedPoolUpsInput.value);
+      const start = managedPoolStartInput.value;
+      const end = managedPoolEndInput.value;
+      const name = managedPoolNameInput.value.trim();
+
+      if (!name || !start || !end || !ups.length) {
+        alert("请完整填写卡池名称、时间和至少一名 UP 密探。");
+        return;
+      }
+      if (end < start) {
+        alert("结束日期不能早于开始日期。");
+        return;
+      }
+
+      const editingId = editingPoolIdInput.value;
+      if (editingId) {
+        const index = POOL_CATALOG.findIndex((pool) => pool.id === editingId);
+        if (index < 0) return;
+        const updatedPool = { ...POOL_CATALOG[index], name, start, end, ups };
+        POOL_CATALOG[index] = updatedPool;
+        records = records.map((record) => {
+          if (record.poolId !== editingId) return record;
+          return {
+            ...record,
+            poolName: name,
+            upCharacters: [...ups],
+            resultType: determineResultType(updatedPool, record.characterName),
+            updatedAt: new Date().toISOString(),
+          };
+        });
+        saveRecords();
+      } else {
+        const id = `pool-${start}-${Date.now().toString(36)}`;
+        POOL_CATALOG.push({ id, type: "limited", name, start, end, ups });
+      }
+
+      resetPoolForm();
+      refreshPoolRelatedUI();
+      renderOverallStats();
+      renderMiniStats();
+    });
+
+    cancelPoolEditButton.addEventListener("click", resetPoolForm);
+
+    window.editRecord = function editRecord(id) {
+      const target = records.find((item) => item.id === id);
+      if (!target) return;
+      recordIdInput.value = target.id;
+      recordDateInput.value = target.date;
+      poolSelect.value = target.poolId || "standard";
+      pullCountInput.value = target.pullCount;
+      populateCharacterOptions(target.characterName || "");
+      notesInput.value = target.notes || "";
+      syncSelectedPoolUI();
+      submitButton.textContent = "更新记录";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.deleteRecord = function deleteRecord(id) {
+      const confirmed = confirm("确认删除这条记录吗？");
+      if (!confirmed) return;
+      records = records.filter((item) => item.id !== id);
+      rerender();
+      if (recordIdInput.value === id) resetForm();
+    };
+
+    window.editPool = function editPool(id) {
+      const pool = POOL_CATALOG.find((item) => item.id === id && item.type === "limited");
+      if (!pool) return;
+      editingPoolIdInput.value = pool.id;
+      managedPoolNameInput.value = pool.name;
+      managedPoolStartInput.value = pool.start;
+      managedPoolEndInput.value = pool.end;
+      managedPoolUpsInput.value = pool.ups.join("、");
+      poolFormTitle.textContent = "编辑限定卡池";
+      savePoolButton.textContent = "保存修改";
+      cancelPoolEditButton.classList.remove("hidden");
+      poolManagerPanel.open = true;
+      poolForm.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+
+    window.deletePool = function deletePool(id) {
+      const pool = POOL_CATALOG.find((item) => item.id === id && item.type === "limited");
+      if (!pool) return;
+      const relatedCount = records.filter((record) => record.poolId === id).length;
+      const detail = relatedCount
+        ? `该卡池已有 ${relatedCount} 条抽卡记录。删除卡池不会删除历史记录，但之后无法再从下拉框选择它。`
+        : "删除后将无法从下拉框选择该卡池。";
+      if (!confirm(`确认删除“${pool.name}”吗？\n${detail}`)) return;
+      POOL_CATALOG = POOL_CATALOG.filter((item) => item.id !== id);
+      if (editingPoolIdInput.value === id) resetPoolForm();
+      refreshPoolRelatedUI();
+    };
+
+    populatePoolOptions();
+    populateCharacterOptions();
+    renderManagedPoolList();
+    resetPoolForm();
+    resetForm();
+    rerender();
+  </script>
+</body>
+</html>
