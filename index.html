@@ -1061,9 +1061,16 @@
       });
     }
 
+    function getPoolsForSelector() {
+      return [...POOL_CATALOG].sort((a, b) => {
+        if (a.type !== b.type) return a.type === "standard" ? 1 : -1;
+        return (a.start || "").localeCompare(b.start || "");
+      });
+    }
+
     function populatePoolOptions() {
       const currentValue = poolSelect.value;
-      const sortedPools = getPoolsNewestFirst();
+      const sortedPools = getPoolsForSelector();
       poolSelect.innerHTML = sortedPools.map((pool) => {
         const dateLabel = pool.start ? `${pool.start} 至 ${pool.end}` : "常驻";
         const upLabel = pool.ups.length ? `｜${pool.ups.join("、")}` : "";
