@@ -535,7 +535,28 @@
       border: 1px solid var(--line);
       border-radius: 16px;
       background: #fff;
+      overflow: hidden;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .pool-card[open] {
+      border-color: #cfa974;
+      box-shadow: 0 10px 24px rgba(86, 60, 26, 0.08);
+    }
+
+    .pool-card > summary {
       padding: 16px;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .pool-card > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .pool-card > summary:hover {
+      background: #fffdf9;
     }
 
     .pool-card-head {
@@ -574,6 +595,104 @@
     .pool-metric strong {
       font-size: 16px;
       color: var(--accent);
+    }
+
+    .expand-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 12px;
+      color: var(--sub);
+      font-size: 12px;
+    }
+
+    .expand-arrow {
+      display: inline-block;
+      transition: transform 0.2s ease;
+    }
+
+    .pool-card[open] .expand-arrow {
+      transform: rotate(180deg);
+    }
+
+    .pool-detail {
+      padding: 14px 16px 16px;
+      border-top: 1px solid var(--line);
+      background: #fcfaf6;
+    }
+
+    .pool-detail-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .pull-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .pull-entry {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #eee4d7;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .pull-entry-index {
+      display: grid;
+      place-items: center;
+      min-height: 42px;
+      border-radius: 9px;
+      background: var(--gold-soft);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .pull-entry-index.is-pity {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .pull-entry-main {
+      min-width: 0;
+    }
+
+    .pull-entry-name {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .pull-entry-count {
+      min-width: 52px;
+      text-align: right;
+      color: var(--accent);
+      font-size: 22px;
+      font-weight: 750;
+    }
+
+    .pull-entry-count span {
+      margin-left: 3px;
+      color: var(--sub);
+      font-size: 11px;
+      font-weight: 500;
     }
 
     .small {
@@ -640,6 +759,10 @@
 
       .filter-grid input {
         grid-column: auto;
+      }
+
+      .pull-entry {
+        grid-template-columns: 48px minmax(0, 1fr) auto;
       }
 
       .toolbar {
@@ -833,7 +956,7 @@
     const POOL_STORAGE_KEY = "gacha_tracker_pools_v1";
 
     const CHARACTERS = [
-      "程普", "钟繇", "程昱", "蒯越", "凌统", "诸葛诞", "张燕", "郭汜", "张郃", "张修",
+      "程普", "钟繇", "程昱", "蒯越", "凌统", "诸葛诞", "张燕", "甄宓", "张郃", "张修",
       "干吉", "孙权", "孙尚香", "郭解", "吕蒙", "陆逊", "吕布", "刘璋", "马腾", "董白",
       "安期", "荀攸", "夏侯惇", "戏学", "张仲景", "马超", "张辽", "张绣", "满宠", "司马徽",
       "虞翻", "黄盖", "张闿", "张鲁", "张角", "葛洪", "贾诩", "夏侯渊", "朱然", "诸葛亮",
@@ -1021,6 +1144,7 @@
     function normalizeRecord(item) {
       const matchedPool = findPoolForLegacyRecord(item);
       const inferredPoolType = matchedPool?.type || item.poolType || (item.poolName === "绣衣天下" ? "standard" : "limited");
+      const characterName = item.characterName === "郭汜" ? "甄宓" : item.characterName || "";
       let resultType = item.resultType || "none";
 
       if (["limited", "up1", "up2"].includes(resultType)) resultType = "up";
@@ -1034,6 +1158,10 @@
         resultType = "none";
       }
 
+      if (item.characterName === "郭汜" && matchedPool) {
+        resultType = determineResultType(matchedPool, characterName);
+      }
+
       return {
         id: item.id || crypto.randomUUID(),
         date: item.date || todayString(),
@@ -1043,7 +1171,7 @@
         upCharacters: matchedPool?.ups || item.upCharacters || [item.upOne, item.upTwo].filter(Boolean),
         pullCount: Number(item.pullCount || 0),
         resultType,
-        characterName: item.characterName || "",
+        characterName,
         notes: item.notes || "",
         createdAt: item.createdAt || new Date().toISOString(),
         updatedAt: item.updatedAt || new Date().toISOString(),
@@ -1473,6 +1601,65 @@
       syncSelectedPoolUI();
     }
 
+    function getPoolRecordDetails(poolSummary) {
+      return records
+        .filter((record) =>
+          poolSummary.poolId
+            ? record.poolId === poolSummary.poolId
+            : record.poolType === poolSummary.poolType && record.poolName === poolSummary.poolName
+        )
+        .sort((a, b) => {
+          if (a.date === b.date) {
+            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          }
+          return a.date > b.date ? 1 : -1;
+        });
+    }
+
+    function compactResultLabel(record) {
+      if (record.resultType === "up") return '<span class="tag tag-success">当期 UP</span>';
+      if (record.resultType === "nonup") return '<span class="tag tag-warning">歪了</span>';
+      if (record.resultType === "standard-ssr") return '<span class="tag tag-success">普池绝密</span>';
+      return '<span class="tag tag-standard">未出绝密</span>';
+    }
+
+    function renderPoolRecordDetails(poolSummary) {
+      const detailRecords = getPoolRecordDetails(poolSummary);
+      if (!detailRecords.length) {
+        return '<div class="small">该卡池暂时还没有抽取记录。</div>';
+      }
+
+      let goldOrder = 0;
+      return `
+        <div class="pull-list">
+          ${detailRecords
+            .map((record) => {
+              const gold = isGold(record.resultType);
+              if (gold) goldOrder += 1;
+              return `
+                <div class="pull-entry">
+                  <div class="pull-entry-index ${gold ? "" : "is-pity"}">
+                    ${gold ? `第 ${goldOrder} 次<br>绝密` : "垫抽"}
+                  </div>
+                  <div class="pull-entry-main">
+                    <div class="pull-entry-name">
+                      ${record.characterName ? escapeHtml(record.characterName) : "未出绝密"}
+                      ${compactResultLabel(record)}
+                    </div>
+                    <div class="small">
+                      ${escapeHtml(record.date)}
+                      ${record.notes ? ` · ${escapeHtml(record.notes)}` : ""}
+                    </div>
+                  </div>
+                  <div class="pull-entry-count">${record.pullCount}<span>抽</span></div>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
+    }
+
     function renderPoolSummary() {
       const allSummary = getPoolSummary(records);
       const summaryList = showAllPools ? allSummary : allSummary.filter((item) => item.records > 0);
@@ -1493,6 +1680,7 @@
           ${summaryList
             .map((item) => {
               const progressPercent = Math.min(100, (item.pityProgress / 40) * 100);
+              const detailRecords = getPoolRecordDetails(item);
               const status =
                 item.poolType === "standard"
                   ? '<span class="tag tag-standard">普池</span>'
@@ -1500,34 +1688,47 @@
                     ? '<span class="tag tag-success">下次必出 UP</span>'
                     : '<span class="tag tag-warning">小保底</span>';
               return `
-                <article class="pool-card">
-                  <div class="pool-card-head">
-                    <div>
-                      <h3>${escapeHtml(item.poolName)}</h3>
-                      <div class="small">${
-                        item.poolType === "limited"
-                          ? `${item.start || "-"} 至 ${item.end || "-"}`
-                          : "常驻普池"
-                      }</div>
+                <details class="pool-card">
+                  <summary>
+                    <div class="pool-card-head">
+                      <div>
+                        <h3>${escapeHtml(item.poolName)}</h3>
+                        <div class="small">${
+                          item.poolType === "limited"
+                            ? `${item.start || "-"} 至 ${item.end || "-"}`
+                            : "常驻普池"
+                        }</div>
+                      </div>
+                      ${status}
                     </div>
-                    ${status}
+                    ${
+                      item.poolType === "limited"
+                        ? `<div class="small">UP：${escapeHtml(item.upCharacters.join("、") || "-")}</div>`
+                        : ""
+                    }
+                    <div class="pool-card-grid">
+                      <div class="pool-metric"><span>累计抽数</span><strong>${item.totalPulls}</strong></div>
+                      <div class="pool-metric"><span>绝密 / UP</span><strong>${item.totalGold}${item.poolType === "limited" ? ` / ${item.upGold}` : ""}</strong></div>
+                      <div class="pool-metric"><span>${item.poolType === "limited" ? "小保底不歪" : "平均出金"}</span><strong>${item.poolType === "limited" ? formatPercent(item.upRate) : item.avgGoldPulls}</strong></div>
+                    </div>
+                    <div class="pity-line">
+                      <span>已垫 <strong>${item.pityProgress}</strong> 抽</span>
+                      <span>距保底 <strong>${item.toNextPity}</strong> 抽</span>
+                    </div>
+                    <div class="progress"><div class="progress-bar" style="width:${progressPercent}%"></div></div>
+                    <div class="expand-hint">
+                      ${detailRecords.length ? `查看 ${detailRecords.length} 条抽取明细` : "暂无记录"}
+                      <span class="expand-arrow">⌄</span>
+                    </div>
+                  </summary>
+                  <div class="pool-detail">
+                    <div class="pool-detail-title">
+                      <span>抽取明细</span>
+                      <span class="small">${detailRecords.length} 条记录</span>
+                    </div>
+                    ${renderPoolRecordDetails(item)}
                   </div>
-                  ${
-                    item.poolType === "limited"
-                      ? `<div class="small">UP：${escapeHtml(item.upCharacters.join("、") || "-")}</div>`
-                      : ""
-                  }
-                  <div class="pool-card-grid">
-                    <div class="pool-metric"><span>累计抽数</span><strong>${item.totalPulls}</strong></div>
-                    <div class="pool-metric"><span>绝密 / UP</span><strong>${item.totalGold}${item.poolType === "limited" ? ` / ${item.upGold}` : ""}</strong></div>
-                    <div class="pool-metric"><span>${item.poolType === "limited" ? "小保底不歪" : "平均出金"}</span><strong>${item.poolType === "limited" ? formatPercent(item.upRate) : item.avgGoldPulls}</strong></div>
-                  </div>
-                  <div class="pity-line">
-                    <span>已垫 <strong>${item.pityProgress}</strong> 抽</span>
-                    <span>距保底 <strong>${item.toNextPity}</strong> 抽</span>
-                  </div>
-                  <div class="progress"><div class="progress-bar" style="width:${progressPercent}%"></div></div>
-                </article>
+                </details>
               `;
             })
             .join("")}
