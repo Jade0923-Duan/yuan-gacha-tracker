@@ -63,7 +63,7 @@
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
       margin-bottom: 18px;
     }
@@ -87,6 +87,33 @@
       font-weight: 700;
       color: var(--accent);
       letter-spacing: -0.02em;
+    }
+
+    .stat-wide {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: 20px;
+    }
+
+    .stat-wide .stat-value {
+      grid-column: 1;
+    }
+
+    .stat-wide .stat-detail {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      text-align: right;
+      font-size: 13px;
+    }
+
+    .stat-missing {
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: var(--gold-soft);
+      color: #9b6a1d;
+      font-weight: 700;
     }
 
     .hero-top {
@@ -269,32 +296,16 @@
       overflow: hidden;
     }
 
-    .record-panel > summary {
-      list-style: none;
-      cursor: pointer;
+    .record-panel-header {
       padding: 20px;
     }
 
-    .record-panel > summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .record-panel > summary .section-head {
+    .record-panel-header .section-head {
       margin-bottom: 0;
     }
 
-    .record-panel > summary .section-title {
+    .record-panel-header .section-title {
       margin-bottom: 0;
-    }
-
-    .record-panel > summary .expand-arrow {
-      font-size: 20px;
-      color: var(--accent);
-      transition: transform 0.2s ease;
-    }
-
-    .record-panel[open] > summary .expand-arrow {
-      transform: rotate(180deg);
     }
 
     .record-panel-body {
@@ -831,7 +842,6 @@
     }
 
     @media (max-width: 1080px) {
-      .stats,
       .sub-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -878,24 +888,41 @@
       }
 
       .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
         margin-bottom: 12px;
       }
 
       .stat {
-        min-height: 92px;
-        padding: 12px 14px;
+        min-width: 0;
+        min-height: 84px;
+        padding: 11px 10px;
         border-radius: 13px;
       }
 
       .stat-label {
         margin-bottom: 4px;
+        font-size: clamp(10px, 2.8vw, 12px);
         line-height: 1.4;
+        white-space: nowrap;
       }
 
       .stat-value {
-        font-size: 24px;
+        font-size: 22px;
+      }
+
+      .stat-wide {
+        min-height: 78px;
+        padding: 12px 14px;
+        column-gap: 12px;
+      }
+
+      .stat-wide .stat-label {
+        white-space: normal;
+      }
+
+      .stat-wide .stat-detail {
+        font-size: 12px;
       }
 
       .sub-grid,
@@ -957,16 +984,15 @@
     <section class="stats" id="overallStats"></section>
 
     <div class="top-grid">
-      <details class="card record-panel" id="recordPanel">
-        <summary>
+      <section class="card record-panel" id="recordPanel">
+        <div class="record-panel-header">
           <div class="section-head">
             <h2 class="section-title">记录一次招募</h2>
             <div class="button-row">
               <span class="tag">仅填 3 项</span>
-              <span class="expand-arrow">⌄</span>
             </div>
           </div>
-        </summary>
+        </div>
         <div class="record-panel-body">
           <form id="recordForm">
           <input type="hidden" id="recordId" />
@@ -1020,7 +1046,7 @@
           </div>
           </form>
         </div>
-      </details>
+      </section>
 
       <div class="sub-grid">
         <section class="mini-stat" id="standardStat"></section>
@@ -1132,6 +1158,7 @@
   <script>
     const STORAGE_KEY = "gacha_tracker_records_v1";
     const POOL_STORAGE_KEY = "gacha_tracker_pools_v1";
+    const LAST_POOL_STORAGE_KEY = "gacha_tracker_last_pool_v1";
 
     const CHARACTERS = [
       "程普", "钟繇", "程昱", "蒯越", "凌统", "诸葛诞", "张燕", "甄宓", "张郃", "张修",
@@ -1139,7 +1166,7 @@
       "安期", "荀攸", "夏侯惇", "戏学", "张仲景", "马超", "张辽", "张绣", "满宠", "司马徽",
       "虞翻", "黄盖", "张闿", "张鲁", "张角", "葛洪", "贾诩", "夏侯渊", "朱然", "诸葛亮",
       "祢衡", "董奉", "黄月英", "徐庶", "庞统", "华佗", "杨修", "士燮", "刘繇", "孔融",
-      "诸葛瑾", "甘宁", "刘豹", "蔡琰", "令狐茂", "周瑜", "鲁肃", "王粲", "曹丕", "庞德",
+      "诸葛瑾", "甘宁", "刘豹", "蔡琰", "令狐茂", "周瑜", "鲁肃", "王粲", "曹丕",
       "张昭", "曹植", "太史慈", "张邈", "张飞", "荀彧", "郭嘉"
     ].sort((a, b) => a.localeCompare(b, "zh-CN"));
 
@@ -1153,13 +1180,13 @@
       "张辽", "马超", "周瑜", "葛洪", "令狐茂", "荀彧", "庞统", "徐庶", "蔡琰",
       "张仲景", "张角", "张鲁", "刘豹", "张郃", "张闿", "张飞", "戏学", "张邈",
       "黄盖", "太史慈", "甘宁", "甄宓", "虞翻", "张燕", "夏侯惇", "荀攸",
-      "公孙珊", "诸葛诞", "诸葛瑾", "孔融", "黄月英", "凌统", "安期"
+      "诸葛诞", "诸葛瑾", "孔融", "黄月英", "凌统", "安期"
     ])).sort((a, b) => a.localeCompare(b, "zh-CN"));
 
     const DONGGE_CHOICES = Array.from(new Set([
       ...QIUXIAN_CHOICES,
       "曹植", "董奉", "蒯越", "祢衡", "诸葛亮", "司马徽", "满宠", "刘繇",
-      "朱然", "张绣", "士燮", "小乔", "程昱", "董白", "张昭"
+      "朱然", "张绣", "士燮", "程昱", "董白", "张昭"
     ])).sort((a, b) => a.localeCompare(b, "zh-CN"));
 
     const DEFAULT_POOL_CATALOG = [
@@ -1434,6 +1461,23 @@
       poolSelect.value = POOL_CATALOG.some((pool) => pool.id === currentValue) ? currentValue : "standard";
     }
 
+    function getLastPoolId() {
+      try {
+        const savedPoolId = localStorage.getItem(LAST_POOL_STORAGE_KEY);
+        return POOL_CATALOG.some((pool) => pool.id === savedPoolId) ? savedPoolId : "standard";
+      } catch (error) {
+        return "standard";
+      }
+    }
+
+    function saveLastPoolId(poolId) {
+      try {
+        localStorage.setItem(LAST_POOL_STORAGE_KEY, poolId);
+      } catch (error) {
+        console.warn("无法保存上次使用的卡池：", error);
+      }
+    }
+
     function populateCharacterOptions(selectedValue = "") {
       const poolUps = POOL_CATALOG.flatMap((pool) => pool.ups);
       const allCharacters = Array.from(new Set([...CHARACTERS, ...poolUps])).sort((a, b) =>
@@ -1578,9 +1622,19 @@
       const limitedUpGold = limitedData.filter((item) => isLimitedUp(item.resultType)).length;
       const standardGold = standardData.filter((item) => isGold(item.resultType)).length;
 
+      const today = todayString();
+      const releasedOfficialUps = DEFAULT_POOL_CATALOG
+        .filter((pool) => !pool.start || pool.start <= today)
+        .flatMap((pool) => pool.ups || []);
+      const allCharacterNames = new Set([...CHARACTERS, ...releasedOfficialUps]);
+
       const characterCountMap = new Map();
       data.forEach((item) => {
-        if (!item.characterName || !isGold(item.resultType)) return;
+        if (
+          !item.characterName ||
+          !isGold(item.resultType) ||
+          !allCharacterNames.has(item.characterName)
+        ) return;
         characterCountMap.set(item.characterName, (characterCountMap.get(item.characterName) || 0) + 1);
       });
 
@@ -1594,6 +1648,17 @@
         });
 
       const mostCommonLimitedUp = Array.from(limitedUpOnlyMap.entries()).sort((a, b) => b[1] - a[1])[0] || null;
+
+      const ownedCharacterNames = new Set(
+        data
+          .filter(
+            (item) =>
+              item.characterName &&
+              isGold(item.resultType) &&
+              allCharacterNames.has(item.characterName)
+          )
+          .map((item) => item.characterName)
+      );
 
       const limitedPoolOutcomes = getPoolSummary(data).filter((item) => item.poolType === "limited");
       const smallPityAttempts = limitedPoolOutcomes.reduce((sum, item) => sum + item.smallPityAttempts, 0);
@@ -1620,6 +1685,9 @@
         totalPools: new Set(data.map((item) => `${item.poolType}:${item.poolName}`)).size,
         mostCommonCharacter,
         mostCommonLimitedUp,
+        collectionOwned: ownedCharacterNames.size,
+        collectionTotal: allCharacterNames.size,
+        collectionMissing: Math.max(0, allCharacterNames.size - ownedCharacterNames.size),
       };
     }
 
@@ -1723,36 +1791,34 @@
       const mostCommonCharacter = summary.mostCommonCharacter;
       const items = [
         { label: "总招募次数", value: summary.totalPulls },
-        { label: "总绝密个数", value: summary.totalGold },
+        { label: "总绝密密探数", value: summary.totalGold },
         { label: "平均出绝密次数", value: summary.avgGoldPulls },
         {
           label: "抽出次数最多的绝密密探",
           value: mostCommonCharacter ? mostCommonCharacter[0] : "-",
           detail: mostCommonCharacter ? `共抽出 ${mostCommonCharacter[1]} 个` : "",
+          wide: true,
+        },
+        {
+          label: "当前绝密图鉴收集进度",
+          value: `${summary.collectionOwned} / ${summary.collectionTotal}`,
+          detail: `还缺 ${summary.collectionMissing} 名绝密密探`,
+          detailClass: "stat-missing",
+          wide: true,
         },
       ];
 
       overallStats.innerHTML = items
         .map(
           (item) => `
-            <div class="stat">
+            <div class="stat${item.wide ? " stat-wide" : ""}">
               <div class="stat-label">${item.label}</div>
               <div class="stat-value">${escapeHtml(String(item.value))}</div>
-              ${item.detail ? `<div class="small">${escapeHtml(item.detail)}</div>` : ""}
+              ${item.detail ? `<div class="small stat-detail${item.detailClass ? ` ${item.detailClass}` : ""}">${escapeHtml(item.detail)}</div>` : ""}
             </div>
           `
         )
         .join("");
-
-      if (summary.mostCommonLimitedUp) {
-        overallStats.innerHTML += `
-          <div class="stat">
-            <div class="stat-label">抽中次数最多的当期 UP</div>
-            <div class="stat-value" style="font-size:24px;">${escapeHtml(summary.mostCommonLimitedUp[0])}</div>
-            <div class="small">作为当期 UP 抽到 ${summary.mostCommonLimitedUp[1]} 次</div>
-          </div>
-        `;
-      }
     }
 
     function renderMiniStats() {
@@ -2099,7 +2165,7 @@
     function resetForm() {
       recordIdInput.value = "";
       recordDateInput.value = todayString();
-      poolSelect.value = "standard";
+      poolSelect.value = getLastPoolId();
       pullCountInput.value = "";
       populateCharacterOptions("");
       notesInput.value = "";
@@ -2150,6 +2216,7 @@
         records.push(payload);
       }
 
+      saveLastPoolId(pool.id);
       rerender();
       resetForm();
     });
@@ -2279,7 +2346,6 @@
     window.editRecord = function editRecord(id) {
       const target = records.find((item) => item.id === id);
       if (!target) return;
-      recordPanel.open = true;
       recordIdInput.value = target.id;
       recordDateInput.value = target.date;
       poolSelect.value = target.poolId || "standard";
