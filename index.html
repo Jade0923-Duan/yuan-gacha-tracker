@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>抽卡记录本</title>
+  <title>如鸢抽卡记录本</title>
   <style>
     :root {
       --bg: #f5f2ec;
@@ -384,6 +384,21 @@
     .tag-limited {
       background: #fff2da;
       color: #9b6a1d;
+    }
+
+    .tag-limited-rerun {
+      background: #eef2ff;
+      color: #4f46a5;
+    }
+
+    .tag-standard-rerun {
+      background: #fff1f2;
+      color: #be425b;
+    }
+
+    .tag-select {
+      background: #fce7f3;
+      color: #a32967;
     }
 
     .tag-success {
@@ -788,7 +803,7 @@
     <section class="hero">
       <div class="hero-top">
         <div>
-          <h1>抽卡记录本</h1>
+          <h1>如鸢抽卡记录本</h1>
           <p>
             选择卡池、填写抽数和抽到的密探，其余结果自动计算。卡池、记录和统计均保存在当前浏览器。
           </p>
@@ -875,7 +890,7 @@
           <form class="manager-form" id="poolForm">
             <input type="hidden" id="editingPoolId" />
             <h2 class="section-title" id="poolFormTitle">新增限定卡池</h2>
-            <p class="section-note">填写后会立即出现在抽卡录入和筛选下拉框中。</p>
+            <p class="section-note">这里新增的是自建限定池，填写后会立即出现在抽卡录入和筛选下拉框中。</p>
             <div class="field">
               <label for="managedPoolName">卡池名称</label>
               <input id="managedPoolName" type="text" placeholder="例如：新池名称" required />
@@ -902,7 +917,7 @@
           </form>
           <div>
             <h2 class="section-title">已录入卡池</h2>
-            <p class="section-note">绣衣天下为固定普池；限定池支持编辑和删除。</p>
+            <p class="section-note">官方预置池会随网页版本更新；用户自建的限定池仍可编辑和删除。</p>
             <div class="manager-list" id="managedPoolList"></div>
           </div>
         </div>
@@ -936,6 +951,9 @@
           <option value="">全部类型</option>
           <option value="standard">普池</option>
           <option value="limited">限定池</option>
+          <option value="limited-rerun">限定复刻</option>
+          <option value="standard-rerun">普池复刻</option>
+          <option value="select">自选池</option>
         </select>
       </div>
       <div id="recordList"></div>
@@ -965,38 +983,63 @@
       "张昭", "曹植", "太史慈", "张邈", "张飞", "荀彧", "郭嘉"
     ].sort((a, b) => a.localeCompare(b, "zh-CN"));
 
+    const OPEN_SERVER_CHARACTERS = [
+      "王粲", "张修", "孙权", "郭解", "陆逊", "干吉", "华佗",
+      "吕蒙", "鲁肃", "郭嘉", "孙尚香", "贾诩", "杨修"
+    ];
+
+    const QIUXIAN_CHOICES = Array.from(new Set([
+      ...OPEN_SERVER_CHARACTERS,
+      "张辽", "马超", "周瑜", "葛洪", "令狐茂", "荀彧", "庞统", "徐庶", "蔡琰",
+      "张仲景", "张角", "张鲁", "刘豹", "张郃", "张闿", "张飞", "戏学", "张邈",
+      "黄盖", "太史慈", "甘宁", "甄宓", "虞翻", "张燕", "夏侯惇", "荀攸",
+      "公孙珊", "诸葛诞", "诸葛瑾", "孔融", "黄月英", "凌统", "安期"
+    ])).sort((a, b) => a.localeCompare(b, "zh-CN"));
+
+    const DONGGE_CHOICES = Array.from(new Set([
+      ...QIUXIAN_CHOICES,
+      "曹植", "董奉", "蒯越", "祢衡", "诸葛亮", "司马徽", "满宠", "刘繇",
+      "朱然", "张绣", "士燮", "小乔", "程昱", "董白", "张昭"
+    ])).sort((a, b) => a.localeCompare(b, "zh-CN"));
+
     const DEFAULT_POOL_CATALOG = [
-      { id: "standard", type: "standard", name: "绣衣天下", start: "", end: "", ups: [] },
-      { id: "2024-10-01", type: "limited", name: "名剑江东", start: "2024-10-01", end: "2024-11-18", ups: ["孙尚香", "孙权"] },
-      { id: "2024-10-03", type: "limited", name: "动如雷霆", start: "2024-10-03", end: "2024-10-23", ups: ["张辽", "马超"] },
-      { id: "2024-10-24", type: "limited", name: "九门烽燧", start: "2024-10-24", end: "2024-12-04", ups: ["周瑜", "干吉"] },
-      { id: "2024-11-07", type: "limited", name: "长生之术", start: "2024-11-07", end: "2024-12-04", ups: ["葛洪", "令狐茂"] },
-      { id: "2024-11-21", type: "limited", name: "弹香展骥", start: "2024-11-21", end: "2025-01-01", ups: ["荀彧", "庞统"] },
-      { id: "2024-12-12", type: "limited", name: "弹剑酿花", start: "2024-12-12", end: "2025-01-15", ups: ["徐庶", "蔡琰", "王粲"] },
-      { id: "2025-01-16", type: "limited", name: "天道不逾", start: "2025-01-16", end: "2025-02-26", ups: ["陆逊", "张仲景", "张角"] },
-      { id: "2025-01-23", type: "limited", name: "形气复生", start: "2025-01-23", end: "2025-02-19", ups: ["张修", "张鲁"] },
-      { id: "2025-02-20", type: "limited", name: "绮花隐豹", start: "2025-02-20", end: "2025-03-19", ups: ["刘豹", "张郃"] },
-      { id: "2025-03-13", type: "limited", name: "织囊画诗", start: "2025-03-13", end: "2025-04-23", ups: ["张闿", "张飞"] },
-      { id: "2025-04-10", type: "limited", name: "欺天罔地", start: "2025-04-10", end: "2025-05-07", ups: ["郭解", "戏学", "张邈"] },
-      { id: "2025-04-24", type: "limited", name: "披弓衔刃", start: "2025-04-24", end: "2025-05-21", ups: ["黄盖", "太史慈"] },
-      { id: "2025-04-30", type: "limited", name: "击金鸣鼓", start: "2025-04-30", end: "2025-06-11", ups: ["甘宁", "甄宓"] },
-      { id: "2025-05-29", type: "limited", name: "燕燕幽篁", start: "2025-05-29", end: "2025-06-25", ups: ["虞翻", "张燕"] },
-      { id: "2025-06-26", type: "limited", name: "壁林邀月", start: "2025-06-26", end: "2025-08-06", ups: ["荀攸", "公孙珊", "夏侯惇"] },
-      { id: "2025-07-03", type: "limited", name: "云雨滂润", start: "2025-07-03", end: "2025-08-06", ups: ["诸葛瑾", "诸葛诞"] },
-      { id: "2025-07-31", type: "limited", name: "金相玉质", start: "2025-07-31", end: "2025-08-27", ups: ["黄月英", "孔融"] },
-      { id: "2025-08-21", type: "limited", name: "膝陵张胆", start: "2025-08-21", end: "2025-10-01", ups: ["凌统", "安期"] },
-      { id: "2025-09-11", type: "limited", name: "道司天英", start: "2025-09-11", end: "2025-10-08", ups: ["董奉", "曹植"] },
-      { id: "2025-10-16", type: "limited", name: "风兴云蒸", start: "2025-10-16", end: "2025-11-26", ups: ["祢衡", "蒯越"] },
-      { id: "2025-11-06", type: "limited", name: "英徽弥亮", start: "2025-11-06", end: "2025-12-03", ups: ["诸葛亮", "司马徽"] },
-      { id: "2025-12-11", type: "limited", name: "蛇蟒之蛰", start: "2025-12-11", end: "2026-01-21", ups: ["刘繇", "满宠"] },
-      { id: "2025-12-23", type: "limited", name: "天张封狼", start: "2025-12-23", end: "2026-01-19", ups: ["张绣", "朱然"] },
-      { id: "2026-02-05", type: "limited", name: "契阔谈宴", start: "2026-02-05", end: "2026-03-18", ups: ["小乔", "程昱", "士燮"] },
-      { id: "2026-02-26", type: "limited", name: "白日昭只", start: "2026-02-26", end: "2026-03-25", ups: ["张昭", "董白"] },
-      { id: "2026-04-02", type: "limited", name: "形骸成光", start: "2026-04-02", end: "2026-05-13", ups: ["庞羲", "马腾"] },
-      { id: "2026-05-21", type: "limited", name: "铁弦千钧", start: "2026-05-21", end: "2026-06-17", ups: ["程普", "钟繇"] },
-      { id: "2026-05-28", type: "limited", name: "碧渊玉水", start: "2026-05-28", end: "2026-07-08", ups: ["夏侯渊", "刘璋"] },
-      { id: "2026-07-23", type: "limited", name: "桓心之梦", start: "2026-07-23", end: "2026-09-02", ups: ["吕布", "曹丕"] },
-      { id: "2026-09-10", type: "limited", name: "王侯秉德", start: "2026-09-10", end: "2026-10-07", ups: ["郭女王", "庞德"] }
+      { id: "standard", type: "standard", kind: "standard", source: "official", name: "绣衣天下", start: "", end: "", ups: [] },
+      { id: "2024-10-01", type: "limited", kind: "limited", source: "official", name: "弓剑江东", start: "2024-10-01", end: "2024-11-18", ups: ["孙权", "孙尚香"] },
+      { id: "2024-10-03", type: "limited", kind: "limited", source: "official", name: "动如雷霆", start: "2024-10-03", end: "2024-10-23", ups: ["张辽", "马超"] },
+      { id: "2024-10-24", type: "limited", kind: "limited", source: "official", name: "九门烽燧", start: "2024-10-24", end: "2024-12-04", ups: ["干吉", "周瑜"] },
+      { id: "2024-11-07", type: "limited", kind: "limited", source: "official", name: "长生之术", start: "2024-11-07", end: "2024-12-04", ups: ["葛洪", "令狐茂"] },
+      { id: "2024-11-21", type: "limited", kind: "limited", source: "official", name: "弹香展骥", start: "2024-11-21", end: "2025-01-01", ups: ["荀彧", "庞统"] },
+      { id: "2024-12-12", type: "limited", kind: "limited", source: "official", name: "弹剑酿花", start: "2024-12-12", end: "2025-01-15", ups: ["王粲", "徐庶", "蔡琰"] },
+      { id: "rerun-standard-2025-01-09", type: "limited", kind: "standard-rerun", source: "official", name: "异才奇士", start: "2025-01-09", end: "2025-02-05", ups: ["郭嘉", "王粲"] },
+      { id: "2025-01-16", type: "limited", kind: "limited", source: "official", name: "天道不逾", start: "2025-01-16", end: "2025-02-27", ups: ["张仲景", "张角", "陆逊"] },
+      { id: "2025-01-23", type: "limited", kind: "limited", source: "official", name: "形气复生", start: "2025-01-23", end: "2025-02-20", ups: ["张修", "张鲁"] },
+      { id: "2025-02-20", type: "limited", kind: "limited", source: "official", name: "绮花隐豹", start: "2025-02-20", end: "2025-03-19", ups: ["刘豹", "张郃"] },
+      { id: "2025-03-13", type: "limited", kind: "limited", source: "official", name: "织囊画诗", start: "2025-03-13", end: "2025-04-23", ups: ["张闿", "张飞"] },
+      { id: "2025-04-10", type: "limited", kind: "limited", source: "official", name: "欺天罔地", start: "2025-04-10", end: "2025-05-07", ups: ["郭解", "戏学", "张邈"] },
+      { id: "2025-04-24", type: "limited", kind: "limited", source: "official", name: "毅弓衔刃", start: "2025-04-24", end: "2025-05-21", ups: ["黄盖", "太史慈"] },
+      { id: "2025-04-30", type: "limited", kind: "limited", source: "official", name: "击金鸣鼓", start: "2025-04-30", end: "2025-06-11", ups: ["甘宁", "甄宓"] },
+      { id: "2025-05-29", type: "limited", kind: "limited", source: "official", name: "暮燕翻雷", start: "2025-05-29", end: "2025-06-25", ups: ["虞翻", "张燕"] },
+      { id: "rerun-standard-2025-06-12", type: "limited", kind: "standard-rerun", source: "official", name: "身藏北斗", start: "2025-06-12", end: "2025-06-25", ups: ["贾诩", "郭解"] },
+      { id: "2025-06-26", type: "limited", kind: "limited", source: "official", name: "繁林邀月", start: "2025-06-26", end: "2025-08-06", ups: ["夏侯惇", "荀攸", "公孙珊"] },
+      { id: "2025-07-03", type: "limited", kind: "limited", source: "official", name: "云雨滂润", start: "2025-07-03", end: "2025-08-06", ups: ["诸葛诞", "诸葛瑾"] },
+      { id: "2025-07-31", type: "limited", kind: "limited", source: "official", name: "金相玉质", start: "2025-07-31", end: "2025-08-27", ups: ["孔融", "黄月英"] },
+      { id: "2025-08-21", type: "limited", kind: "limited", source: "official", name: "腾陵张胆", start: "2025-08-21", end: "2025-10-01", ups: ["凌统", "安期"] },
+      { id: "2025-09-11", type: "limited", kind: "limited", source: "official", name: "谨司天英", start: "2025-09-11", end: "2025-10-08", ups: ["曹植", "董奉"] },
+      { id: "select-2025-09-26", type: "limited", kind: "select", source: "official", name: "求贤访士", start: "2025-09-26", end: "2025-10-25", ups: [], choiceRange: "开服至腾陵张胆", choices: QIUXIAN_CHOICES },
+      { id: "2025-10-16", type: "limited", kind: "limited", source: "official", name: "风兴云蒸", start: "2025-10-16", end: "2025-11-26", ups: ["蒯越", "祢衡"] },
+      { id: "2025-11-06", type: "limited", kind: "limited", source: "official", name: "英徽弥亮", start: "2025-11-06", end: "2025-12-03", ups: ["诸葛亮", "司马徽"] },
+      { id: "2025-12-11", type: "limited", kind: "limited", source: "official", name: "蛇蟒之蛰", start: "2025-12-11", end: "2026-01-22", ups: ["满宠", "刘繇"] },
+      { id: "2025-12-23", type: "limited", kind: "limited", source: "official", name: "天张封狼", start: "2025-12-23", end: "2026-01-19", ups: ["朱然", "张绣"] },
+      { id: "2026-02-05", type: "limited", kind: "limited", source: "official", name: "契阔谈宴", start: "2026-02-05", end: "2026-03-18", ups: ["士燮", "小乔", "程昱"] },
+      { id: "2026-02-26", type: "limited", kind: "limited", source: "official", name: "白日昭只", start: "2026-02-26", end: "2026-03-25", ups: ["董白", "张昭"] },
+      { id: "select-2026-03-26", type: "limited", kind: "select", source: "official", name: "东阁待贤", start: "2026-03-26", end: "2026-04-25", ups: [], choiceRange: "开服至白日昭只", choices: DONGGE_CHOICES },
+      { id: "2026-04-02", type: "limited", kind: "limited", source: "official", name: "形骸成光", start: "2026-04-02", end: "2026-05-13", ups: ["庞羲", "马腾"] },
+      { id: "2026-05-21", type: "limited", kind: "limited", source: "official", name: "铁弦千钧", start: "2026-05-21", end: "2026-06-17", ups: ["钟繇", "程普"] },
+      { id: "2026-05-28", type: "limited", kind: "limited", source: "official", name: "珠渊玉水", start: "2026-05-28", end: "2026-07-08", ups: ["刘璋", "夏侯渊"] },
+      { id: "rerun-limited-2026-07-09", type: "limited", kind: "limited-rerun", source: "official", name: "奉天华盖", start: "2026-07-09", end: "2026-07-22", ups: ["黄盖", "董奉"] },
+      { id: "rerun-limited-2026-07-23", type: "limited", kind: "limited-rerun", source: "official", name: "劫月凌风", start: "2026-07-23", end: "2026-08-05", ups: ["黄月英", "凌统"] },
+      { id: "2026-07-23", type: "limited", kind: "limited", source: "official", name: "桓桓先征", start: "2026-07-23", end: "2026-09-02", ups: ["曹丕", "吕布"] },
+      { id: "2026-09-10", type: "limited", kind: "limited", source: "official", name: "王侯秉德", start: "2026-09-10", end: "2026-10-07", ups: ["郭女王", "庞德"] }
     ];
 
     let POOL_CATALOG = loadPoolCatalog();
@@ -1090,36 +1133,57 @@
       return (totalPulls / totalGold).toFixed(1);
     }
 
-    function normalizePool(pool) {
+    function normalizePool(pool, fallbackSource = "custom") {
+      const type = pool.type === "standard" ? "standard" : "limited";
+      const allowedKinds = ["standard", "limited", "standard-rerun", "limited-rerun", "select"];
+      const kind = allowedKinds.includes(pool.kind)
+        ? pool.kind
+        : type === "standard"
+          ? "standard"
+          : "limited";
       return {
         id: String(pool.id || `pool-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`),
-        type: pool.type === "standard" ? "standard" : "limited",
+        type,
+        kind,
+        source: pool.source === "official" ? "official" : fallbackSource,
         name: String(pool.name || "未命名卡池").trim(),
         start: String(pool.start || ""),
         end: String(pool.end || ""),
         ups: Array.isArray(pool.ups) ? pool.ups.map((name) => String(name).trim()).filter(Boolean) : [],
+        choiceRange: String(pool.choiceRange || ""),
+        choices: Array.isArray(pool.choices)
+          ? pool.choices.map((name) => String(name).trim()).filter(Boolean)
+          : [],
       };
+    }
+
+    function mergePoolCatalogWithDefaults(localPools = []) {
+      const officialPools = DEFAULT_POOL_CATALOG.map((pool) => normalizePool(pool, "official"));
+      const officialIds = new Set(officialPools.map((pool) => pool.id));
+      const officialSignatures = new Set(officialPools.map((pool) => `${pool.name}::${pool.start}`));
+      const customPools = localPools
+        .map((pool) => normalizePool(pool))
+        .filter(
+          (pool) =>
+            pool.id !== "standard" &&
+            !officialIds.has(pool.id) &&
+            !officialSignatures.has(`${pool.name}::${pool.start}`)
+        );
+      return [...officialPools, ...customPools];
     }
 
     function loadPoolCatalog() {
       try {
         const raw = localStorage.getItem(POOL_STORAGE_KEY);
-        if (!raw) return DEFAULT_POOL_CATALOG.map(normalizePool);
+        if (!raw) return mergePoolCatalogWithDefaults();
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed) || !parsed.length) throw new Error("卡池数据为空");
-        const normalized = parsed.map(normalizePool);
-        const renamedPool = normalized.find((pool) => pool.id === "2026-09-10");
-        if (renamedPool && renamedPool.name === "限定池 2026.9.10") {
-          renamedPool.name = "王侯秉德";
-          localStorage.setItem(POOL_STORAGE_KEY, JSON.stringify(normalized));
-        }
-        if (!normalized.some((pool) => pool.id === "standard")) {
-          normalized.unshift(normalizePool(DEFAULT_POOL_CATALOG[0]));
-        }
-        return normalized;
+        const merged = mergePoolCatalogWithDefaults(parsed);
+        localStorage.setItem(POOL_STORAGE_KEY, JSON.stringify(merged));
+        return merged;
       } catch (error) {
         console.error("读取卡池失败", error);
-        return DEFAULT_POOL_CATALOG.map(normalizePool);
+        return mergePoolCatalogWithDefaults();
       }
     }
 
@@ -1144,6 +1208,7 @@
     function normalizeRecord(item) {
       const matchedPool = findPoolForLegacyRecord(item);
       const inferredPoolType = matchedPool?.type || item.poolType || (item.poolName === "绣衣天下" ? "standard" : "limited");
+      const inferredPoolKind = matchedPool?.kind || item.poolKind || (inferredPoolType === "standard" ? "standard" : "limited");
       const characterName = item.characterName === "郭汜" ? "甄宓" : item.characterName || "";
       let resultType = item.resultType || "none";
 
@@ -1154,11 +1219,11 @@
         resultType = resultType === "none" ? "none" : "standard-ssr";
       }
 
-      if (inferredPoolType === "limited" && !["none", "up", "nonup"].includes(resultType)) {
+      if (inferredPoolType === "limited" && !["none", "up", "nonup", "special-ssr"].includes(resultType)) {
         resultType = "none";
       }
 
-      if (item.characterName === "郭汜" && matchedPool) {
+      if (matchedPool) {
         resultType = determineResultType(matchedPool, characterName);
       }
 
@@ -1167,6 +1232,7 @@
         date: item.date || todayString(),
         poolId: matchedPool?.id || item.poolId || "",
         poolType: inferredPoolType,
+        poolKind: inferredPoolKind,
         poolName: matchedPool?.name || item.poolName || "未命名卡池",
         upCharacters: matchedPool?.ups || item.upCharacters || [item.upOne, item.upTwo].filter(Boolean),
         pullCount: Number(item.pullCount || 0),
@@ -1202,7 +1268,7 @@
       poolSelect.innerHTML = sortedPools.map((pool) => {
         const dateLabel = pool.start ? `${pool.start} 至 ${pool.end}` : "常驻";
         const upLabel = pool.ups.length ? `｜${pool.ups.join("、")}` : "";
-        return `<option value="${pool.id}">${escapeHtml(pool.name)}｜${dateLabel}${escapeHtml(upLabel)}</option>`;
+        return `<option value="${pool.id}">【${poolKindLabel(pool)}】${escapeHtml(pool.name)}｜${dateLabel}${escapeHtml(upLabel)}</option>`;
       }).join("");
       poolSelect.value = POOL_CATALOG.some((pool) => pool.id === currentValue) ? currentValue : "standard";
     }
@@ -1214,7 +1280,11 @@
       );
       const selectedPool = getPoolById(poolSelect.value);
       const currentUps = selectedPool?.type === "limited" ? selectedPool.ups : [];
-      const otherCharacters = allCharacters.filter((name) => !currentUps.includes(name));
+      const selectableCharacters =
+        selectedPool?.kind === "select" && selectedPool.choices.length
+          ? selectedPool.choices
+          : allCharacters;
+      const otherCharacters = selectableCharacters.filter((name) => !currentUps.includes(name));
       const upOptions = currentUps.length
         ? `<optgroup label="当期 UP（优先）">${currentUps
             .map((name) => `<option value="${escapeHtml(name)}">★ ${escapeHtml(name)}</option>`)
@@ -1223,23 +1293,46 @@
       characterNameInput.innerHTML = `
         <option value="">未出绝密 / 仅累计抽数</option>
         ${upOptions}
-        <optgroup label="${currentUps.length ? "其他密探" : "全部密探"}">
+        <optgroup label="${selectedPool?.kind === "select" ? "本期可选密探" : currentUps.length ? "其他密探" : "全部密探"}">
           ${otherCharacters
             .map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
             .join("")}
         </optgroup>
       `;
-      characterNameInput.value = allCharacters.includes(selectedValue) ? selectedValue : "";
+      characterNameInput.value = selectableCharacters.includes(selectedValue) ? selectedValue : "";
     }
 
     function determineResultType(pool, characterName) {
       if (!characterName) return "none";
       if (pool.type === "standard") return "standard-ssr";
+      if (pool.kind === "select") return "special-ssr";
       return pool.ups.includes(characterName) ? "up" : "nonup";
+    }
+
+    function poolKindLabel(poolOrRecord) {
+      const kind = poolOrRecord.kind || poolOrRecord.poolKind || (poolOrRecord.type === "standard" || poolOrRecord.poolType === "standard" ? "standard" : "limited");
+      if (kind === "limited-rerun") return "限定复刻";
+      if (kind === "standard-rerun") return "普池复刻";
+      if (kind === "select") return "自选池";
+      if (kind === "standard") return "普池";
+      return "限定池";
+    }
+
+    function poolKindTag(poolOrRecord) {
+      const kind = poolOrRecord.kind || poolOrRecord.poolKind || (poolOrRecord.type === "standard" || poolOrRecord.poolType === "standard" ? "standard" : "limited");
+      const className = {
+        standard: "tag-standard",
+        limited: "tag-limited",
+        "limited-rerun": "tag-limited-rerun",
+        "standard-rerun": "tag-standard-rerun",
+        select: "tag-select",
+      }[kind] || "tag-limited";
+      return `<span class="tag ${className}">${poolKindLabel(poolOrRecord)}</span>`;
     }
 
     function resultText(resultType) {
       if (resultType === "standard-ssr") return "普池出绝密";
+      if (resultType === "special-ssr") return "自选池出绝密";
       if (resultType === "up") return "命中当期 UP";
       if (resultType === "nonup") return "歪了 / 非当期 UP";
       return "未出绝密";
@@ -1251,10 +1344,12 @@
       const pityProgress = poolState?.pityProgress || 0;
       const toNextPity = poolState?.toNextPity ?? 40;
       const progressPercent = Math.min(100, (pityProgress / 40) * 100);
-      poolTypeDisplay.value = pool.type === "standard" ? "普池" : "限定池";
+      poolTypeDisplay.value = poolKindLabel(pool);
       const guaranteeTag =
         pool.type === "standard"
           ? '<span class="tag tag-standard">普池</span>'
+          : pool.kind === "select"
+            ? '<span class="tag tag-select">自选池 · 独立保底</span>'
           : poolState?.guaranteedUp
             ? '<span class="tag tag-success">下次绝密必出 UP</span>'
             : '<span class="tag tag-warning">小保底，可能歪</span>';
@@ -1267,7 +1362,11 @@
           ${
             pool.type === "standard"
               ? "常驻普池 · 保底长期保留"
-              : `${pool.start} 至 ${pool.end}<br>UP：${escapeHtml(pool.ups.join("、"))}`
+              : `${pool.start} 至 ${pool.end}<br>${
+                  pool.kind === "select"
+                    ? `可选范围：${escapeHtml(pool.choiceRange || "以游戏内规则为准")}（${pool.choices.length} 名绝密密探）`
+                    : `UP：${escapeHtml(pool.ups.join("、"))}`
+                }`
           }
         </div>
         <div class="pity-line">
@@ -1294,6 +1393,10 @@
         return record.resultType === "standard-ssr"
           ? '<span class="tag tag-success">普池出绝密</span>'
           : '<span class="tag tag-standard">未出绝密</span>';
+      }
+
+      if (record.resultType === "special-ssr") {
+        return `<span class="tag tag-select">自选池绝密${record.characterName ? ` · ${escapeHtml(record.characterName)}` : ""}</span>`;
       }
 
       if (isLimitedUp(record.resultType)) {
@@ -1374,6 +1477,7 @@
             key: pool.id,
             poolId: pool.id,
             poolType: pool.type,
+            poolKind: pool.kind,
             poolName: pool.name,
             upCharacters: [...pool.ups],
             start: pool.start,
@@ -1398,6 +1502,7 @@
             key,
             poolId: item.poolId || "",
             poolType: item.poolType,
+            poolKind: item.poolKind || (item.poolType === "standard" ? "standard" : "limited"),
             poolName: item.poolName,
             upCharacters: item.upCharacters || [],
             start: "",
@@ -1572,14 +1677,19 @@
                   <tr>
                     <td>
                       <strong>${escapeHtml(pool.name)}</strong>
+                      <div style="margin-top:6px;">${poolKindTag(pool)}</div>
                       <div class="small">${pool.start || "-"} 至 ${pool.end || "-"}</div>
                     </td>
                     <td>${escapeHtml(pool.ups.join("、") || "-")}</td>
                     <td>
-                      <div class="button-row">
-                        <button type="button" class="ghost" onclick="editPool('${pool.id}')">编辑</button>
-                        <button type="button" class="danger" onclick="deletePool('${pool.id}')">删除</button>
-                      </div>
+                      ${
+                        pool.source === "official"
+                          ? '<span class="small">官方预置</span>'
+                          : `<div class="button-row">
+                              <button type="button" class="ghost" onclick="editPool('${pool.id}')">编辑</button>
+                              <button type="button" class="danger" onclick="deletePool('${pool.id}')">删除</button>
+                            </div>`
+                      }
                     </td>
                   </tr>
                 `
@@ -1619,6 +1729,7 @@
     function compactResultLabel(record) {
       if (record.resultType === "up") return '<span class="tag tag-success">当期 UP</span>';
       if (record.resultType === "nonup") return '<span class="tag tag-warning">歪了</span>';
+      if (record.resultType === "special-ssr") return '<span class="tag tag-select">自选池绝密</span>';
       if (record.resultType === "standard-ssr") return '<span class="tag tag-success">普池绝密</span>';
       return '<span class="tag tag-standard">未出绝密</span>';
     }
@@ -1684,6 +1795,8 @@
               const status =
                 item.poolType === "standard"
                   ? '<span class="tag tag-standard">普池</span>'
+                  : item.poolKind === "select"
+                    ? '<span class="tag tag-select">自选池</span>'
                   : item.guaranteedUp
                     ? '<span class="tag tag-success">下次必出 UP</span>'
                     : '<span class="tag tag-warning">小保底</span>';
@@ -1693,6 +1806,7 @@
                     <div class="pool-card-head">
                       <div>
                         <h3>${escapeHtml(item.poolName)}</h3>
+                        <div style="margin-top:6px;">${poolKindTag(item)}</div>
                         <div class="small">${
                           item.poolType === "limited"
                             ? `${item.start || "-"} 至 ${item.end || "-"}`
@@ -1702,14 +1816,16 @@
                       ${status}
                     </div>
                     ${
-                      item.poolType === "limited"
+                      item.poolType === "limited" && item.poolKind !== "select"
                         ? `<div class="small">UP：${escapeHtml(item.upCharacters.join("、") || "-")}</div>`
+                        : item.poolKind === "select"
+                          ? `<div class="small">可选范围：${escapeHtml(getPoolById(item.poolId)?.choiceRange || "以游戏内规则为准")}</div>`
                         : ""
                     }
                     <div class="pool-card-grid">
                       <div class="pool-metric"><span>累计抽数</span><strong>${item.totalPulls}</strong></div>
-                      <div class="pool-metric"><span>绝密 / UP</span><strong>${item.totalGold}${item.poolType === "limited" ? ` / ${item.upGold}` : ""}</strong></div>
-                      <div class="pool-metric"><span>${item.poolType === "limited" ? "小保底不歪" : "平均出金"}</span><strong>${item.poolType === "limited" ? formatPercent(item.upRate) : item.avgGoldPulls}</strong></div>
+                      <div class="pool-metric"><span>${item.poolKind === "select" ? "绝密数量" : "绝密 / UP"}</span><strong>${item.totalGold}${item.poolType === "limited" && item.poolKind !== "select" ? ` / ${item.upGold}` : ""}</strong></div>
+                      <div class="pool-metric"><span>${item.poolType === "limited" && item.poolKind !== "select" ? "小保底不歪" : "平均出金"}</span><strong>${item.poolType === "limited" && item.poolKind !== "select" ? formatPercent(item.upRate) : item.avgGoldPulls}</strong></div>
                     </div>
                     <div class="pity-line">
                       <span>已垫 <strong>${item.pityProgress}</strong> 抽</span>
@@ -1744,7 +1860,8 @@
       return [...records]
         .filter((item) => {
           const matchesPool = !selectedPool || item.poolName.trim() === selectedPool;
-          const matchesType = !selectedType || item.poolType === selectedType;
+          const itemKind = item.poolKind || (item.poolType === "standard" ? "standard" : "limited");
+          const matchesType = !selectedType || itemKind === selectedType;
           const target = `${item.poolName} ${item.characterName} ${item.notes} ${(item.upCharacters || []).join(" ")}`.toLowerCase();
           const matchesKeyword = !keyword || target.includes(keyword);
           return matchesPool && matchesType && matchesKeyword;
@@ -1792,11 +1909,13 @@
                     <tr>
                       <td>${item.date}</td>
                       <td>
-                        ${item.poolType === "limited" ? '<span class="tag tag-limited">限定池</span>' : '<span class="tag tag-standard">普池</span>'}
+                        ${poolKindTag(item)}
                         <div style="margin-top:6px;"><strong>${escapeHtml(item.poolName)}</strong></div>
                         ${
-                          item.poolType === "limited"
+                          item.poolType === "limited" && item.poolKind !== "select"
                             ? `<div class="small">UP：${escapeHtml((item.upCharacters || []).join("、") || "-")}</div>`
+                            : item.poolKind === "select"
+                              ? `<div class="small">可选范围：${escapeHtml(getPoolById(item.poolId)?.choiceRange || "以游戏内规则为准")}</div>`
                             : ""
                         }
                       </td>
@@ -1850,6 +1969,7 @@
         date: recordDateInput.value,
         poolId: pool.id,
         poolType: pool.type,
+        poolKind: pool.kind,
         poolName: pool.name,
         upCharacters: [...pool.ups],
         pullCount: Number(pullCountInput.value),
@@ -1928,10 +2048,7 @@
         if (!shouldReplace) return;
 
         if (Array.isArray(parsed.poolCatalog) && parsed.poolCatalog.length) {
-          POOL_CATALOG = parsed.poolCatalog.map(normalizePool);
-          if (!POOL_CATALOG.some((pool) => pool.id === "standard")) {
-            POOL_CATALOG.unshift(normalizePool(DEFAULT_POOL_CATALOG[0]));
-          }
+          POOL_CATALOG = mergePoolCatalogWithDefaults(parsed.poolCatalog);
           savePoolCatalog();
           populatePoolOptions();
           populateCharacterOptions();
@@ -1991,7 +2108,7 @@
         saveRecords();
       } else {
         const id = `pool-${start}-${Date.now().toString(36)}`;
-        POOL_CATALOG.push({ id, type: "limited", name, start, end, ups });
+        POOL_CATALOG.push({ id, type: "limited", kind: "limited", source: "custom", name, start, end, ups });
       }
 
       resetPoolForm();
@@ -2025,7 +2142,7 @@
     };
 
     window.editPool = function editPool(id) {
-      const pool = POOL_CATALOG.find((item) => item.id === id && item.type === "limited");
+      const pool = POOL_CATALOG.find((item) => item.id === id && item.type === "limited" && item.source !== "official");
       if (!pool) return;
       editingPoolIdInput.value = pool.id;
       managedPoolNameInput.value = pool.name;
@@ -2040,7 +2157,7 @@
     };
 
     window.deletePool = function deletePool(id) {
-      const pool = POOL_CATALOG.find((item) => item.id === id && item.type === "limited");
+      const pool = POOL_CATALOG.find((item) => item.id === id && item.type === "limited" && item.source !== "official");
       if (!pool) return;
       const relatedCount = records.filter((record) => record.poolId === id).length;
       const detail = relatedCount
