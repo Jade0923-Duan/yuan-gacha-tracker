@@ -152,6 +152,8 @@
       padding: 18px 20px;
       cursor: pointer;
       color: var(--accent);
+      font-size: 20px;
+      line-height: 1.4;
       font-weight: 700;
       list-style: none;
       user-select: none;
@@ -220,9 +222,117 @@
       margin: -8px 0 14px;
     }
 
+    .records-panel {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .records-panel > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 20px;
+    }
+
+    .records-panel > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .records-panel > summary .section-head {
+      margin-bottom: 0;
+    }
+
+    .records-panel > summary .section-title {
+      margin-bottom: 4px;
+    }
+
+    .records-panel > summary .expand-arrow {
+      font-size: 20px;
+      color: var(--accent);
+      transition: transform 0.2s ease;
+    }
+
+    .records-panel[open] > summary .expand-arrow {
+      transform: rotate(180deg);
+    }
+
+    .records-panel-body {
+      padding: 0 20px 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .records-panel-body .filter-grid {
+      margin-top: 18px;
+    }
+
+    .record-panel {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .record-panel > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 20px;
+    }
+
+    .record-panel > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .record-panel > summary .section-head {
+      margin-bottom: 0;
+    }
+
+    .record-panel > summary .section-title {
+      margin-bottom: 0;
+    }
+
+    .record-panel > summary .expand-arrow {
+      font-size: 20px;
+      color: var(--accent);
+      transition: transform 0.2s ease;
+    }
+
+    .record-panel[open] > summary .expand-arrow {
+      transform: rotate(180deg);
+    }
+
+    .record-panel-body {
+      padding: 0 20px 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .record-panel-body form {
+      margin-top: 18px;
+    }
+
+    .backup-panel {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .backup-panel .section-head,
+    .backup-panel .section-title {
+      margin-bottom: 0;
+    }
+
+    .backup-panel-copy {
+      display: grid;
+      gap: 5px;
+    }
+
+    .backup-panel .button-row {
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+    }
+
     .section-title {
       margin: 0 0 16px;
       font-size: 20px;
+      line-height: 1.4;
       color: var(--accent);
       font-weight: 700;
     }
@@ -745,15 +855,17 @@
 
     @media (max-width: 720px) {
       .page {
-        padding: 16px;
+        padding: 12px;
       }
 
       .hero {
-        padding: 20px;
+        padding: 16px 18px;
+        margin-bottom: 12px;
       }
 
       .hero h1 {
-        font-size: 26px;
+        margin-bottom: 6px;
+        font-size: 24px;
       }
 
       .hero-top {
@@ -762,15 +874,45 @@
 
       .hero-badge {
         display: inline-flex;
-        margin-top: 14px;
+        margin-top: 10px;
       }
 
-      .stats,
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .stat {
+        min-height: 92px;
+        padding: 12px 14px;
+        border-radius: 13px;
+      }
+
+      .stat-label {
+        margin-bottom: 4px;
+        line-height: 1.4;
+      }
+
+      .stat-value {
+        font-size: 24px;
+      }
+
       .sub-grid,
       .field-row,
       .filter-grid {
         grid-template-columns: 1fr;
       }
+
+        .backup-panel {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .backup-panel .button-row {
+          flex-wrap: wrap;
+          justify-content: flex-start;
+        }
 
       .filter-grid input {
         grid-column: auto;
@@ -815,12 +957,18 @@
     <section class="stats" id="overallStats"></section>
 
     <div class="top-grid">
-      <aside class="card">
-        <div class="section-head">
-          <h2 class="section-title">记录一次招募</h2>
-          <span class="tag">仅填 3 项</span>
-        </div>
-        <form id="recordForm">
+      <details class="card record-panel" id="recordPanel">
+        <summary>
+          <div class="section-head">
+            <h2 class="section-title">记录一次招募</h2>
+            <div class="button-row">
+              <span class="tag">仅填 3 项</span>
+              <span class="expand-arrow">⌄</span>
+            </div>
+          </div>
+        </summary>
+        <div class="record-panel-body">
+          <form id="recordForm">
           <input type="hidden" id="recordId" />
 
           <div class="field-row">
@@ -870,9 +1018,9 @@
             <button type="submit" class="primary" id="submitButton">保存记录</button>
             <button type="button" class="secondary" id="resetButton">清空表单</button>
           </div>
-        </form>
-
-      </aside>
+          </form>
+        </div>
+      </details>
 
       <div class="sub-grid">
         <section class="mini-stat" id="standardStat"></section>
@@ -886,6 +1034,9 @@
         <span class="small">新增或修改卡池与当期 UP</span>
       </summary>
       <div class="manager-body">
+        <div class="tips" style="margin-bottom:16px;">
+          卡池通常会按照官方排期统一更新。如果新卡池暂时还未更新，大家也可以先在下方自行新增；后续官方补充该卡池时，系统会根据卡池名称和开放日期自动识别并合并，不影响已经填写的抽卡记录。
+        </div>
         <div class="manager-grid">
           <form class="manager-form" id="poolForm">
             <input type="hidden" id="editingPoolId" />
@@ -935,37 +1086,46 @@
       <div id="poolSummary"></div>
     </section>
 
-    <section class="card">
-      <div class="section-head">
-        <div>
-          <h2 class="section-title">招募明细</h2>
-          <div class="small" id="recordCountText">0 条记录</div>
+    <details class="card records-panel">
+      <summary>
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">招募明细</h2>
+            <div class="small" id="recordCountText">0 条记录</div>
+          </div>
+          <span class="expand-arrow">⌄</span>
         </div>
-      </div>
-      <div class="filter-grid">
-        <input id="searchInput" type="text" placeholder="搜索卡池、密探或备注" />
-        <select id="poolFilter">
-          <option value="">全部卡池</option>
-        </select>
-        <select id="typeFilter">
-          <option value="">全部类型</option>
-          <option value="standard">普池</option>
-          <option value="limited">限定池</option>
-          <option value="limited-rerun">限定复刻</option>
-          <option value="standard-rerun">普池复刻</option>
-          <option value="select">自选池</option>
-        </select>
-      </div>
-      <div id="recordList"></div>
-      <details class="data-panel">
-        <summary>数据备份与清理</summary>
-        <div class="button-row">
-          <button type="button" class="ghost" id="exportButton">导出数据</button>
-          <button type="button" class="ghost" id="importButton">导入数据</button>
-          <button type="button" class="danger" id="clearAllButton">清空全部</button>
-          <input id="importFileInput" type="file" accept=".json,application/json" hidden />
+      </summary>
+      <div class="records-panel-body">
+        <div class="filter-grid">
+          <input id="searchInput" type="text" placeholder="搜索卡池、密探或备注" />
+          <select id="poolFilter">
+            <option value="">全部卡池</option>
+          </select>
+          <select id="typeFilter">
+            <option value="">全部类型</option>
+            <option value="standard">普池</option>
+            <option value="limited">限定池</option>
+            <option value="limited-rerun">限定复刻</option>
+            <option value="standard-rerun">普池复刻</option>
+            <option value="select">自选池</option>
+          </select>
         </div>
-      </details>
+        <div id="recordList"></div>
+      </div>
+    </details>
+
+    <section class="card backup-panel">
+      <div class="backup-panel-copy">
+          <h2 class="section-title">数据备份与清理</h2>
+          <div class="small">建议定期导出备份，换设备或清理浏览器数据前尤其需要。</div>
+      </div>
+      <div class="button-row">
+        <button type="button" class="ghost" id="exportButton">导出数据</button>
+        <button type="button" class="ghost" id="importButton">导入数据</button>
+        <button type="button" class="danger" id="clearAllButton">清空全部</button>
+        <input id="importFileInput" type="file" accept=".json,application/json" hidden />
+      </div>
     </section>
   </div>
 
@@ -1009,18 +1169,18 @@
       { id: "2024-10-24", type: "limited", kind: "limited", source: "official", name: "九门烽燧", start: "2024-10-24", end: "2024-12-04", ups: ["干吉", "周瑜"] },
       { id: "2024-11-07", type: "limited", kind: "limited", source: "official", name: "长生之术", start: "2024-11-07", end: "2024-12-04", ups: ["葛洪", "令狐茂"] },
       { id: "2024-11-21", type: "limited", kind: "limited", source: "official", name: "弹香展骥", start: "2024-11-21", end: "2025-01-01", ups: ["荀彧", "庞统"] },
-      { id: "2024-12-12", type: "limited", kind: "limited", source: "official", name: "弹剑酿花", start: "2024-12-12", end: "2025-01-15", ups: ["王粲", "徐庶", "蔡琰"] },
+      { id: "2024-12-12", type: "limited", kind: "limited", source: "official", name: "弹剑酿花", start: "2024-12-12", end: "2025-01-15", ups: ["徐庶", "蔡琰"] },
       { id: "rerun-standard-2025-01-09", type: "limited", kind: "standard-rerun", source: "official", name: "异才奇士", start: "2025-01-09", end: "2025-02-05", ups: ["郭嘉", "王粲"] },
-      { id: "2025-01-16", type: "limited", kind: "limited", source: "official", name: "天道不逾", start: "2025-01-16", end: "2025-02-27", ups: ["张仲景", "张角", "陆逊"] },
+      { id: "2025-01-16", type: "limited", kind: "limited", source: "official", name: "天道不逾", start: "2025-01-16", end: "2025-02-27", ups: ["张仲景", "张角"] },
       { id: "2025-01-23", type: "limited", kind: "limited", source: "official", name: "形气复生", start: "2025-01-23", end: "2025-02-20", ups: ["张修", "张鲁"] },
       { id: "2025-02-20", type: "limited", kind: "limited", source: "official", name: "绮花隐豹", start: "2025-02-20", end: "2025-03-19", ups: ["刘豹", "张郃"] },
       { id: "2025-03-13", type: "limited", kind: "limited", source: "official", name: "织囊画诗", start: "2025-03-13", end: "2025-04-23", ups: ["张闿", "张飞"] },
-      { id: "2025-04-10", type: "limited", kind: "limited", source: "official", name: "欺天罔地", start: "2025-04-10", end: "2025-05-07", ups: ["郭解", "戏学", "张邈"] },
+      { id: "2025-04-10", type: "limited", kind: "limited", source: "official", name: "欺天罔地", start: "2025-04-10", end: "2025-05-07", ups: ["戏学", "张邈"] },
       { id: "2025-04-24", type: "limited", kind: "limited", source: "official", name: "毅弓衔刃", start: "2025-04-24", end: "2025-05-21", ups: ["黄盖", "太史慈"] },
       { id: "2025-04-30", type: "limited", kind: "limited", source: "official", name: "击金鸣鼓", start: "2025-04-30", end: "2025-06-11", ups: ["甘宁", "甄宓"] },
       { id: "2025-05-29", type: "limited", kind: "limited", source: "official", name: "暮燕翻雷", start: "2025-05-29", end: "2025-06-25", ups: ["虞翻", "张燕"] },
       { id: "rerun-standard-2025-06-12", type: "limited", kind: "standard-rerun", source: "official", name: "身藏北斗", start: "2025-06-12", end: "2025-06-25", ups: ["贾诩", "郭解"] },
-      { id: "2025-06-26", type: "limited", kind: "limited", source: "official", name: "繁林邀月", start: "2025-06-26", end: "2025-08-06", ups: ["夏侯惇", "荀攸", "公孙珊"] },
+      { id: "2025-06-26", type: "limited", kind: "limited", source: "official", name: "繁林邀月", start: "2025-06-26", end: "2025-08-06", ups: ["夏侯惇", "荀攸"] },
       { id: "2025-07-03", type: "limited", kind: "limited", source: "official", name: "云雨滂润", start: "2025-07-03", end: "2025-08-06", ups: ["诸葛诞", "诸葛瑾"] },
       { id: "2025-07-31", type: "limited", kind: "limited", source: "official", name: "金相玉质", start: "2025-07-31", end: "2025-08-27", ups: ["孔融", "黄月英"] },
       { id: "2025-08-21", type: "limited", kind: "limited", source: "official", name: "腾陵张胆", start: "2025-08-21", end: "2025-10-01", ups: ["凌统", "安期"] },
@@ -1030,10 +1190,10 @@
       { id: "2025-11-06", type: "limited", kind: "limited", source: "official", name: "英徽弥亮", start: "2025-11-06", end: "2025-12-03", ups: ["诸葛亮", "司马徽"] },
       { id: "2025-12-11", type: "limited", kind: "limited", source: "official", name: "蛇蟒之蛰", start: "2025-12-11", end: "2026-01-22", ups: ["满宠", "刘繇"] },
       { id: "2025-12-23", type: "limited", kind: "limited", source: "official", name: "天张封狼", start: "2025-12-23", end: "2026-01-19", ups: ["朱然", "张绣"] },
-      { id: "2026-02-05", type: "limited", kind: "limited", source: "official", name: "契阔谈宴", start: "2026-02-05", end: "2026-03-18", ups: ["士燮", "小乔", "程昱"] },
+      { id: "2026-02-05", type: "limited", kind: "limited", source: "official", name: "契阔谈宴", start: "2026-02-05", end: "2026-03-18", ups: ["士燮", "程昱"] },
       { id: "2026-02-26", type: "limited", kind: "limited", source: "official", name: "白日昭只", start: "2026-02-26", end: "2026-03-25", ups: ["董白", "张昭"] },
       { id: "select-2026-03-26", type: "limited", kind: "select", source: "official", name: "东阁待贤", start: "2026-03-26", end: "2026-04-25", ups: [], choiceRange: "开服至白日昭只", choices: DONGGE_CHOICES },
-      { id: "2026-04-02", type: "limited", kind: "limited", source: "official", name: "形骸成光", start: "2026-04-02", end: "2026-05-13", ups: ["庞羲", "马腾"] },
+      { id: "2026-04-02", type: "limited", kind: "limited", source: "official", name: "形谍成光", start: "2026-04-02", end: "2026-05-13", ups: ["庞羲", "马腾"] },
       { id: "2026-05-21", type: "limited", kind: "limited", source: "official", name: "铁弦千钧", start: "2026-05-21", end: "2026-06-17", ups: ["钟繇", "程普"] },
       { id: "2026-05-28", type: "limited", kind: "limited", source: "official", name: "珠渊玉水", start: "2026-05-28", end: "2026-07-08", ups: ["刘璋", "夏侯渊"] },
       { id: "rerun-limited-2026-07-09", type: "limited", kind: "limited-rerun", source: "official", name: "奉天华盖", start: "2026-07-09", end: "2026-07-22", ups: ["黄盖", "董奉"] },
@@ -1045,6 +1205,7 @@
     let POOL_CATALOG = loadPoolCatalog();
 
     const form = document.getElementById("recordForm");
+    const recordPanel = document.getElementById("recordPanel");
     const recordIdInput = document.getElementById("recordId");
     const recordDateInput = document.getElementById("recordDate");
     const poolTypeDisplay = document.getElementById("poolTypeDisplay");
@@ -1559,11 +1720,16 @@
 
     function renderOverallStats() {
       const summary = summarize(records);
+      const mostCommonCharacter = summary.mostCommonCharacter;
       const items = [
         { label: "总招募次数", value: summary.totalPulls },
         { label: "总绝密个数", value: summary.totalGold },
         { label: "平均出绝密次数", value: summary.avgGoldPulls },
-        { label: "记录中的卡池数", value: summary.totalPools },
+        {
+          label: "抽出次数最多的绝密密探",
+          value: mostCommonCharacter ? mostCommonCharacter[0] : "-",
+          detail: mostCommonCharacter ? `共抽出 ${mostCommonCharacter[1]} 个` : "",
+        },
       ];
 
       overallStats.innerHTML = items
@@ -1571,21 +1737,12 @@
           (item) => `
             <div class="stat">
               <div class="stat-label">${item.label}</div>
-              <div class="stat-value">${item.value}</div>
+              <div class="stat-value">${escapeHtml(String(item.value))}</div>
+              ${item.detail ? `<div class="small">${escapeHtml(item.detail)}</div>` : ""}
             </div>
           `
         )
         .join("");
-
-      if (summary.mostCommonCharacter) {
-        overallStats.innerHTML += `
-          <div class="stat">
-            <div class="stat-label">抽出次数最多的绝密密探</div>
-            <div class="stat-value" style="font-size:24px;">${escapeHtml(summary.mostCommonCharacter[0])}</div>
-            <div class="small">共抽出 ${summary.mostCommonCharacter[1]} 个</div>
-          </div>
-        `;
-      }
 
       if (summary.mostCommonLimitedUp) {
         overallStats.innerHTML += `
@@ -2122,6 +2279,7 @@
     window.editRecord = function editRecord(id) {
       const target = records.find((item) => item.id === id);
       if (!target) return;
+      recordPanel.open = true;
       recordIdInput.value = target.id;
       recordDateInput.value = target.date;
       poolSelect.value = target.poolId || "standard";
