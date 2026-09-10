@@ -716,7 +716,28 @@
       border: 1px solid var(--line);
       border-radius: 16px;
       background: #fff;
+      overflow: hidden;
+    }
+
+    .pool-card > summary {
+      display: block;
       padding: 16px;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .pool-card > summary::marker {
+      content: "";
+      font-size: 0;
+    }
+
+    .pool-card > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .pool-card > summary:focus {
+      outline: none;
     }
 
     .pool-card-head {
@@ -730,6 +751,38 @@
     .pool-card h3 {
       margin: 0 0 4px;
       font-size: 16px;
+    }
+
+    .pool-card-head-actions {
+      display: grid;
+      justify-items: end;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .pool-card-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 28px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #faf7f2;
+      color: var(--sub);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .pool-card-toggle svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      transition: transform 0.2s ease;
+    }
+
+    .pool-card[open] .pool-card-toggle svg {
+      transform: rotate(180deg);
     }
 
     .pool-card-meta {
@@ -763,25 +816,6 @@
     .pool-metric strong {
       font-size: 16px;
       color: var(--accent);
-    }
-
-    .expand-hint {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      margin-top: 12px;
-      color: var(--sub);
-      font-size: 12px;
-    }
-
-    .expand-arrow {
-      display: inline-block;
-      transition: transform 0.2s ease;
-    }
-
-    .pool-card[open] .expand-arrow {
-      transform: rotate(180deg);
     }
 
     .pool-detail {
@@ -2041,6 +2075,7 @@
           ${summaryList
             .map((item) => {
               const progressPercent = Math.min(100, (item.pityProgress / 40) * 100);
+              const detailRecords = getPoolRecordDetails(item);
               const status =
                 item.poolType === "standard"
                   ? `<span class="tag tag-standard">普池</span>`
@@ -2056,33 +2091,50 @@
                     ? `可选范围：${getPoolById(item.poolId)?.choiceRange || "以游戏内规则为准"}`
                     : "";
               return `
-                <article class="pool-card">
-                  <div class="pool-card-head">
-                    <div>
-                      <h3>${escapeHtml(item.poolName)}</h3>
-                      <div class="small">${
-                        item.poolType === "limited"
-                          ? `${item.start || "-"} 至 ${item.end || "-"}`
-                          : "常驻普池"
-                      }</div>
+                <details class="pool-card">
+                  <summary>
+                    <div class="pool-card-head">
+                      <div>
+                        <h3>${escapeHtml(item.poolName)}</h3>
+                        <div class="small">${
+                          item.poolType === "limited"
+                            ? `${item.start || "-"} 至 ${item.end || "-"}`
+                            : "常驻普池"
+                        }</div>
+                      </div>
+                      <div class="pool-card-head-actions">
+                        ${status}
+                        <span class="pool-card-toggle">
+                          招募详情
+                          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M5 7.5 10 12.5 15 7.5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                          </svg>
+                        </span>
+                      </div>
                     </div>
-                    ${status}
+                    <div class="pool-card-meta">
+                      ${poolKindTag(item)}
+                      ${poolInfo ? `<span class="small">${escapeHtml(poolInfo)}</span>` : ""}
+                    </div>
+                    <div class="pool-card-grid">
+                      <div class="pool-metric"><span>累计抽数</span><strong>${item.totalPulls}</strong></div>
+                      <div class="pool-metric"><span>${item.poolKind === "select" ? "绝密数量" : "绝密 / UP"}</span><strong>${item.totalGold}${item.poolType === "limited" && item.poolKind !== "select" ? ` / ${item.upGold}` : ""}</strong></div>
+                      <div class="pool-metric"><span>${item.poolType === "limited" && item.poolKind !== "select" ? "小保底不歪" : "平均出金"}</span><strong>${item.poolType === "limited" && item.poolKind !== "select" ? formatPercent(item.upRate) : item.avgGoldPulls}</strong></div>
+                    </div>
+                    <div class="pity-line">
+                      <span>已垫 <strong>${item.pityProgress}</strong> 抽</span>
+                      <span>距保底 <strong>${item.toNextPity}</strong> 抽</span>
+                    </div>
+                    <div class="progress"><div class="progress-bar" style="width:${progressPercent}%"></div></div>
+                  </summary>
+                  <div class="pool-detail">
+                    <div class="pool-detail-title">
+                      <span>招募情况</span>
+                      <span class="small">${detailRecords.length} 条记录</span>
+                    </div>
+                    ${renderPoolRecordDetails(item)}
                   </div>
-                  <div class="pool-card-meta">
-                    ${poolKindTag(item)}
-                    ${poolInfo ? `<span class="small">${escapeHtml(poolInfo)}</span>` : ""}
-                  </div>
-                  <div class="pool-card-grid">
-                    <div class="pool-metric"><span>累计抽数</span><strong>${item.totalPulls}</strong></div>
-                    <div class="pool-metric"><span>${item.poolKind === "select" ? "绝密数量" : "绝密 / UP"}</span><strong>${item.totalGold}${item.poolType === "limited" && item.poolKind !== "select" ? ` / ${item.upGold}` : ""}</strong></div>
-                    <div class="pool-metric"><span>${item.poolType === "limited" && item.poolKind !== "select" ? "小保底不歪" : "平均出金"}</span><strong>${item.poolType === "limited" && item.poolKind !== "select" ? formatPercent(item.upRate) : item.avgGoldPulls}</strong></div>
-                  </div>
-                  <div class="pity-line">
-                    <span>已垫 <strong>${item.pityProgress}</strong> 抽</span>
-                    <span>距保底 <strong>${item.toNextPity}</strong> 抽</span>
-                  </div>
-                  <div class="progress"><div class="progress-bar" style="width:${progressPercent}%"></div></div>
-                </article>
+                </details>
               `;
             })
             .join("")}
