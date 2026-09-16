@@ -1196,6 +1196,7 @@
             <option value="limited-rerun">限定复刻</option>
             <option value="standard-rerun">普池复刻</option>
             <option value="select">自选池</option>
+            <option value="exclude">特殊池</option>
           </select>
         </div>
         <div id="recordList"></div>
@@ -1287,7 +1288,9 @@
       { id: "rerun-limited-2026-07-09", type: "limited", kind: "limited-rerun", source: "official", name: "奉天华盖", start: "2026-07-09", end: "2026-07-22", ups: ["黄盖", "董奉"] },
       { id: "rerun-limited-2026-07-23", type: "limited", kind: "limited-rerun", source: "official", name: "劫月凌风", start: "2026-07-23", end: "2026-08-05", ups: ["黄月英", "凌统"] },
       { id: "2026-07-23", type: "limited", kind: "limited", source: "official", name: "桓桓先征", start: "2026-07-23", end: "2026-09-02", ups: ["曹丕", "吕布"] },
-      { id: "2026-09-10", type: "limited", kind: "limited", source: "official", name: "王侯秉德", start: "2026-09-10", end: "2026-10-07", ups: ["郭女王", "庞德"] }
+      { id: "2026-09-10", type: "limited", kind: "limited", source: "official", name: "王侯秉德", start: "2026-09-10", end: "2026-10-07", ups: ["郭女王", "庞德"] },
+      { id: "2026-09-17", type: "limited", kind: "limited", source: "official", name: "言简理直", start: "2026-09-17", end: "2026-10-28", ups: ["法正", "简雍"] },
+      { id: "exclude-2026-09-17", type: "limited", kind: "exclude", source: "official", name: "燕金募秀", start: "2026-09-17", end: "2026-10-14", ups: [], choiceRange: "普池密探；招募前每种属性可自行剔除 3 名密探", choices: [] }
     ];
 
     let POOL_CATALOG = loadPoolCatalog();
@@ -1382,7 +1385,7 @@
 
     function normalizePool(pool, fallbackSource = "custom") {
       const type = pool.type === "standard" ? "standard" : "limited";
-      const allowedKinds = ["standard", "limited", "standard-rerun", "limited-rerun", "select"];
+      const allowedKinds = ["standard", "limited", "standard-rerun", "limited-rerun", "select", "exclude"];
       const kind = allowedKinds.includes(pool.kind)
         ? pool.kind
         : type === "standard"
@@ -1516,6 +1519,8 @@
         const upLabel =
           pool.kind === "select"
             ? "自选范围内密探"
+            : pool.kind === "exclude"
+              ? "普池密探（每种属性可剔除 3 名）"
             : pool.ups.length
               ? pool.ups.join("、")
               : "无固定 UP";
@@ -1561,7 +1566,7 @@
       characterNameInput.innerHTML = `
         <option value="">未出绝密 / 仅累计抽数</option>
         ${upOptions}
-        <optgroup label="${selectedPool?.kind === "select" ? "本期可选密探" : currentUps.length ? "其他密探" : "全部密探"}">
+        <optgroup label="${selectedPool?.kind === "select" ? "本期可选密探" : selectedPool?.kind === "exclude" ? "普池范围密探" : currentUps.length ? "其他密探" : "全部密探"}">
           ${otherCharacters
             .map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
             .join("")}
@@ -1573,7 +1578,7 @@
     function determineResultType(pool, characterName) {
       if (!characterName) return "none";
       if (pool.type === "standard") return "standard-ssr";
-      if (pool.kind === "select") return "special-ssr";
+      if (pool.kind === "select" || pool.kind === "exclude") return "special-ssr";
       return pool.ups.includes(characterName) ? "up" : "nonup";
     }
 
@@ -1582,6 +1587,7 @@
       if (kind === "limited-rerun") return "限定复刻";
       if (kind === "standard-rerun") return "普池复刻";
       if (kind === "select") return "自选池";
+      if (kind === "exclude") return "特殊池";
       if (kind === "standard") return "普池";
       return "限定池";
     }
@@ -1594,13 +1600,14 @@
         "limited-rerun": "tag-limited-rerun",
         "standard-rerun": "tag-standard-rerun",
         select: "tag-select",
+        exclude: "tag-select",
       }[kind] || "tag-limited";
       return `<span class="tag ${className}">${poolKindLabel(poolOrRecord)}</span>`;
     }
 
-    function resultText(resultType) {
+    function resultText(resultType, poolKind = "") {
       if (resultType === "standard-ssr") return "普池出绝密";
-      if (resultType === "special-ssr") return "自选池出绝密";
+      if (resultType === "special-ssr") return poolKind === "exclude" ? "特殊池出绝密" : "自选池出绝密";
       if (resultType === "up") return "命中当期 UP";
       if (resultType === "nonup") return "歪了 / 非当期 UP";
       return "未出绝密";
@@ -1617,6 +1624,8 @@
           ? '<span class="tag tag-standard">普池</span>'
           : pool.kind === "select"
             ? '<span class="tag tag-select">自选池 · 独立保底</span>'
+          : pool.kind === "exclude"
+            ? '<span class="tag tag-select">特殊池 · 无固定 UP</span>'
           : poolState?.guaranteedUp
             ? '<span class="tag tag-success">下次绝密必出 UP</span>'
             : '<span class="tag tag-warning">小保底，可能歪</span>';
@@ -1632,6 +1641,8 @@
               : `${pool.start} 至 ${pool.end}<br>${
                   pool.kind === "select"
                     ? `可选范围：${escapeHtml(pool.choiceRange || "以游戏内规则为准")}（${pool.choices.length} 名绝密密探）`
+                    : pool.kind === "exclude"
+                      ? `招募范围：${escapeHtml(pool.choiceRange || "以游戏内规则为准")}`
                     : `UP：${escapeHtml(pool.ups.join("、"))}`
                 }`
           }
@@ -1652,7 +1663,7 @@
       resultDisplay.value =
         pool.type === "limited" && poolState?.guaranteedUp && resultType === "nonup"
           ? "规则冲突：本次应必出 UP"
-          : resultText(resultType);
+          : resultText(resultType, pool.kind);
     }
 
     function resultLabel(record) {
@@ -1663,7 +1674,7 @@
       }
 
       if (record.resultType === "special-ssr") {
-        return `<span class="tag tag-select">自选池绝密${record.characterName ? ` · ${escapeHtml(record.characterName)}` : ""}</span>`;
+        return `<span class="tag tag-select">${record.poolKind === "exclude" ? "特殊池绝密" : "自选池绝密"}${record.characterName ? ` · ${escapeHtml(record.characterName)}` : ""}</span>`;
       }
 
       if (isLimitedUp(record.resultType)) {
@@ -1678,7 +1689,11 @@
     function summarize(data) {
       const totalPulls = data.reduce((sum, item) => sum + item.pullCount, 0);
       const totalGold = data.filter((item) => isGold(item.resultType)).length;
-      const limitedData = data.filter((item) => item.poolType === "limited");
+      const limitedData = data.filter(
+        (item) =>
+          item.poolType === "limited" &&
+          !["select", "exclude"].includes(item.poolKind)
+      );
       const standardData = data.filter((item) => item.poolType === "standard");
       const limitedGold = limitedData.filter((item) => isGold(item.resultType)).length;
       const limitedUpGold = limitedData.filter((item) => isLimitedUp(item.resultType)).length;
@@ -1722,7 +1737,11 @@
           .map((item) => item.characterName)
       );
 
-      const limitedPoolOutcomes = getPoolSummary(data).filter((item) => item.poolType === "limited");
+      const limitedPoolOutcomes = getPoolSummary(data).filter(
+        (item) =>
+          item.poolType === "limited" &&
+          !["select", "exclude"].includes(item.poolKind)
+      );
       const smallPityAttempts = limitedPoolOutcomes.reduce((sum, item) => sum + item.smallPityAttempts, 0);
       const directUpWins = limitedPoolOutcomes.reduce((sum, item) => sum + item.directUpWins, 0);
 
@@ -1811,6 +1830,9 @@
         }
 
         const current = map.get(key);
+        const hasUpGuarantee =
+          current.poolType === "limited" &&
+          !["select", "exclude"].includes(current.poolKind);
         current.totalPulls += item.pullCount;
         current.records += 1;
         current.latestDate = item.date > current.latestDate ? item.date : current.latestDate;
@@ -1819,16 +1841,18 @@
           current.totalGold += 1;
           if (isLimitedUp(item.resultType)) {
             current.upGold += 1;
-            if (current.poolType === "limited" && !current.guaranteedUp) {
+            if (hasUpGuarantee && !current.guaranteedUp) {
               current.smallPityAttempts += 1;
               current.directUpWins += 1;
             }
-          } else if (item.resultType === "nonup" && current.poolType === "limited") {
+          } else if (item.resultType === "nonup" && hasUpGuarantee) {
             if (!current.guaranteedUp) current.smallPityAttempts += 1;
           }
           current.pityProgress = 0;
-          if (current.poolType === "limited") {
+          if (hasUpGuarantee) {
             current.guaranteedUp = item.resultType === "nonup";
+          } else {
+            current.guaranteedUp = false;
           }
         } else {
           current.pityProgress += item.pullCount;
@@ -2014,7 +2038,9 @@
     function compactResultLabel(record) {
       if (record.resultType === "up") return '<span class="tag tag-success">当期 UP</span>';
       if (record.resultType === "nonup") return '<span class="tag tag-warning">歪了</span>';
-      if (record.resultType === "special-ssr") return '<span class="tag tag-select">自选池绝密</span>';
+      if (record.resultType === "special-ssr") {
+        return `<span class="tag tag-select">${record.poolKind === "exclude" ? "特殊池绝密" : "自选池绝密"}</span>`;
+      }
       if (record.resultType === "standard-ssr") return '<span class="tag tag-success">普池绝密</span>';
       return '<span class="tag tag-standard">未出绝密</span>';
     }
@@ -2081,11 +2107,15 @@
                   ? `<span class="tag tag-standard">普池</span>`
                   : item.poolKind === "select"
                     ? `<span class="tag tag-select">自选池</span>`
+                    : item.poolKind === "exclude"
+                      ? `<span class="tag tag-select">特殊池</span>`
                     : item.guaranteedUp
                       ? `<span class="tag tag-success">下次必出 UP</span>`
                       : `<span class="tag tag-warning">小保底</span>`;
               const poolInfo =
-                item.poolType === "limited" && item.poolKind !== "select"
+                item.poolKind === "exclude"
+                  ? `招募范围：${getPoolById(item.poolId)?.choiceRange || "以游戏内规则为准"}`
+                  : item.poolType === "limited" && item.poolKind !== "select"
                   ? `UP：${item.upCharacters.join("、") || "-"}`
                   : item.poolKind === "select"
                     ? `可选范围：${getPoolById(item.poolId)?.choiceRange || "以游戏内规则为准"}`
@@ -2118,8 +2148,8 @@
                     </div>
                     <div class="pool-card-grid">
                       <div class="pool-metric"><span>累计抽数</span><strong>${item.totalPulls}</strong></div>
-                      <div class="pool-metric"><span>${item.poolKind === "select" ? "绝密数量" : "绝密 / UP"}</span><strong>${item.totalGold}${item.poolType === "limited" && item.poolKind !== "select" ? ` / ${item.upGold}` : ""}</strong></div>
-                      <div class="pool-metric"><span>${item.poolType === "limited" && item.poolKind !== "select" ? "小保底不歪" : "平均出金"}</span><strong>${item.poolType === "limited" && item.poolKind !== "select" ? formatPercent(item.upRate) : item.avgGoldPulls}</strong></div>
+                      <div class="pool-metric"><span>${["select", "exclude"].includes(item.poolKind) ? "绝密数量" : "绝密 / UP"}</span><strong>${item.totalGold}${item.poolType === "limited" && !["select", "exclude"].includes(item.poolKind) ? ` / ${item.upGold}` : ""}</strong></div>
+                      <div class="pool-metric"><span>${item.poolType === "limited" && !["select", "exclude"].includes(item.poolKind) ? "小保底不歪" : "平均出金"}</span><strong>${item.poolType === "limited" && !["select", "exclude"].includes(item.poolKind) ? formatPercent(item.upRate) : item.avgGoldPulls}</strong></div>
                     </div>
                     <div class="pity-line">
                       <span>已垫 <strong>${item.pityProgress}</strong> 抽</span>
@@ -2201,7 +2231,9 @@
                         ${poolKindTag(item)}
                         <div style="margin-top:6px;"><strong>${escapeHtml(item.poolName)}</strong></div>
                         ${
-                          item.poolType === "limited" && item.poolKind !== "select"
+                          item.poolKind === "exclude"
+                            ? `<div class="small">招募范围：${escapeHtml(getPoolById(item.poolId)?.choiceRange || "以游戏内规则为准")}</div>`
+                            : item.poolType === "limited" && item.poolKind !== "select"
                             ? `<div class="small">UP：${escapeHtml((item.upCharacters || []).join("、") || "-")}</div>`
                             : item.poolKind === "select"
                               ? `<div class="small">可选范围：${escapeHtml(getPoolById(item.poolId)?.choiceRange || "以游戏内规则为准")}</div>`
